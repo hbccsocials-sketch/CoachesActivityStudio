@@ -1,0 +1,438 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cricket Activity Studio</title><style>
+:root{font-family:Inter,system-ui,Arial,sans-serif;color:#15233a;background:#f4f6f9}*{box-sizing:border-box}body{margin:0}header{background:#101b33;color:white;padding:16px 25px;display:flex;align-items:center;justify-content:space-between;gap:10px}header strong{font-size:19px}button,input,select,textarea{font:inherit}button{border:1px solid #d9e0e8;border-radius:9px;background:white;padding:9px 12px;cursor:pointer;color:#15233a}button:hover{filter:brightness(.96)}button.primary{background:#efc84a;border-color:#efc84a;color:#101b33;font-weight:700}.shell{max-width:1350px;margin:0 auto;padding:24px}.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.between{justify-content:space-between}.muted{color:#68768a;font-size:13px}.panel{background:white;border:1px solid #e1e6ed;border-radius:15px;padding:17px}.hidden{display:none!important}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:18px}.card{border:1px solid #dfe5ed;border-radius:12px;overflow:hidden;background:white}.thumb{background:#174c37;height:125px;display:grid;place-items:center;color:#fff}.card .info{padding:14px}.card h3{margin:0 0 6px}.card p{font-size:13px;color:#607084;min-height:35px}.card .row{padding:0 14px 14px}h1{margin:0 0 6px;font-size:27px}h2{font-size:18px;margin:0 0 14px}.layout{display:grid;grid-template-columns:235px minmax(320px,1fr) 290px;gap:14px;align-items:start}.tool{width:100%;text-align:left;margin:4px 0}.tool.active{background:#fff3c6;border-color:#d2a51c;font-weight:700}.canvas-selection{padding:10px 12px;margin-bottom:10px;border-radius:9px;background:#f1f5fa;border:1px solid #d9e2ef;font-size:13px;font-weight:650}.canvas-selection.active{background:#fff3c6;border-color:#e3bf56}.field{width:100%;background:#164832;border-radius:12px;touch-action:none;cursor:crosshair;display:block}.formfield{margin:12px 0}.formfield label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}.formfield input,.formfield select,.formfield textarea,#search{width:100%;padding:10px;border:1px solid #d9e0e8;border-radius:8px;background:white}.formfield textarea{min-height:67px;resize:vertical}.pill{font-size:12px;background:#eef1f5;border-radius:15px;padding:5px 9px}.help{font-size:12px;color:#697789;line-height:1.5}.actions{margin-top:12px}.pathrow{border:1px solid #e4e8ef;border-radius:8px;padding:8px;margin-top:8px;font-size:12px}.swatch{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:middle;margin-right:5px}@media(max-width:950px){.layout{grid-template-columns:1fr}.shell{padding:12px}.field{max-height:550px}header{padding:14px}}
+
+/* V5: simplified coaching whiteboard */
+.layout{grid-template-columns:250px minmax(340px,1fr) 270px}.panel{box-shadow:0 4px 22px #172b4a0b}.tool{width:auto;min-width:90px;text-align:center;border-radius:12px;padding:12px 8px;margin:0;font-size:13px}.tool.active{background:#fff0b7;box-shadow:inset 0 0 0 2px #e7bc3e}.field{border:3px solid #dce5eb;box-shadow:0 10px 25px #173c3024}.toolgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.quickguide{background:#f2f7fb;border:1px solid #dae7f2;border-radius:12px;padding:12px;margin:12px 0;font-size:13px;line-height:1.5}.quickguide strong{display:block;margin-bottom:4px}.stephead{display:flex;align-items:center;gap:8px}.stephead .stepnum{display:grid;place-items:center;background:#101b33;color:#fff;width:26px;height:26px;border-radius:50%;font-size:13px}.toolbar{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.toolbar button{flex:1;font-size:12px}.pathrow{background:#fafbfc}.pathrow button{font-size:12px}.tipbar{background:#fff8e4;border:1px solid #f4df98;border-radius:10px;padding:10px;margin:10px 0;font-size:12px}.field:focus{outline:3px solid #efc84a}.tool:focus-visible,button:focus-visible{outline:3px solid #4d8dd1;outline-offset:2}@media(max-width:1050px){.layout{grid-template-columns:1fr}.layout>.panel:nth-child(2){order:0}.layout>.panel:first-child{order:1}.layout>.panel:last-child{order:2}}
+.equipment-title{font-weight:800;font-size:13px;margin:16px 0 9px}.equipment-title span{display:block;font-size:11px;font-weight:400;color:#66758a;margin-top:3px}.details-step #builderLayout{display:block}.details-step #builderLayout>aside:first-child,.details-step #builderLayout>.panel:nth-child(2),.details-step #nextStepRow{display:none}.details-step #detailsPanel{max-width:760px;margin:0 auto}.builder-step #detailsPanel{display:none}.builder-step #builderLayout{grid-template-columns:minmax(250px,320px) minmax(340px,1fr)}.future-admin{margin-top:22px;border:1px dashed #c7d2df;border-radius:12px;padding:18px;color:#52657a;background:#f8fafc}.future-admin p{margin:6px 0 0;font-size:13px}</style><style>.help-icon{border:1px solid #b6c5d8;border-radius:50%;width:27px;height:27px;padding:0;margin-left:6px;font-weight:800;background:#f3f7fc;color:#24436d}.subtle-help{display:inline-block;background:transparent;border:0;color:#315c91;font-size:12px;padding:5px 0;text-align:left;text-decoration:underline;text-underline-offset:3px}.help-dialog{border:0;border-radius:16px;box-shadow:0 20px 80px #0e1a30a0;padding:24px;width:min(460px,calc(100vw - 30px));line-height:1.6}.help-dialog::backdrop{background:#0e1a3070}.help-dialog h2{margin:0 0 10px}.help-dialog ol{padding-left:22px}.help-dialog p{font-size:14px}.help-dialog .close{float:right}</style><style>.animation-controls{border:1px solid #d9e3ef;border-radius:12px;padding:12px;margin:0 0 12px;background:#f8fbff}.animation-controls>.row:first-child{margin-bottom:8px}.animation-controls .tool,.animation-controls>button:not(.subtle-help){margin:3px 4px 3px 0}.animation-controls .toolbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.animation-controls .toolbar button{margin:0}.animation-controls #editorHint{margin-top:8px}.movement-list{margin-top:12px}.movement-list #pathList{margin-top:10px}@media(max-width:700px){.animation-controls button{font-size:12px}.animation-controls{padding:10px}}</style><style>.editor-heading{display:flex;align-items:center;gap:13px;flex-wrap:wrap}.editor-heading #editorTitle{margin-left:7px}.editor-heading .help-icon{margin-left:0}.details-step #headerNextButton{display:none}#headerNextButton{white-space:nowrap}@media(max-width:760px){#editor>.row.between{align-items:flex-start;gap:12px;flex-wrap:wrap}}</style><style>
+/* V24: desktop single-screen fielding workspace */
+@media (min-width:1060px){
+  header{padding:10px 22px;min-height:44px}
+  header strong{font-size:16px}
+  .shell{max-width:1600px;padding:12px 18px}
+  #editor>.row.between{margin-bottom:10px!important}
+  .builder-step #builderLayout{grid-template-columns:250px minmax(0,1fr);gap:12px}
+  #builderLayout>.panel{padding:12px 14px}
+  #builderLayout>aside:first-child h2{font-size:15px;line-height:1.3;margin-bottom:9px}
+  #builderLayout .formfield{margin:8px 0}
+  #builderLayout .formfield select{padding:8px}
+  .equipment-title{margin:11px 0 6px}
+  .equipment-title span{font-size:10px}
+  .toolgrid{gap:5px}
+  .toolgrid .tool{padding:8px 5px;font-size:12px;min-height:34px}
+  .animation-controls{padding:8px 10px;margin-bottom:7px}
+  .animation-controls>.row:first-child{margin-bottom:3px}
+  .animation-controls .tool,.animation-controls>button:not(.subtle-help){padding:7px 10px;font-size:12px;margin:2px 3px 2px 0;min-height:32px}
+  .animation-controls .toolbar{display:inline-flex;vertical-align:middle;margin:2px 0 2px 7px;gap:5px}
+  .animation-controls .toolbar button{flex:none;padding:7px 9px;min-height:32px}
+  .animation-controls #editorHint{padding:5px 9px;margin:4px 0;font-size:11px}
+  .canvas-selection{padding:6px 10px;margin-bottom:6px;font-size:12px}
+  .field{height:clamp(390px,calc(100dvh - 350px),780px);min-height:0;display:block;width:100%}
+  .actions{margin-top:7px;gap:7px}
+  .actions button,.actions select{padding:6px 9px;font-size:12px}
+  .actions .muted{font-size:12px}
+  .movement-list{margin-top:6px}
+  .movement-list #pathList{margin-top:5px}
+}
+@media (max-width:1059px){.builder-step #builderLayout{grid-template-columns:1fr}.field{max-height:70vh}}
+</style><style>
+/* V26: one-screen desktop workspace. The field uses the space left after controls. */
+@media (min-width:1060px){
+  html,body{height:100%;overflow:hidden}
+  body{display:flex;flex-direction:column}
+  body>header{flex:0 0 44px;min-height:44px;padding:8px 20px}
+  main.shell{flex:1;min-height:0;width:100%;max-width:none;padding:9px 14px;overflow:hidden}
+  #editor:not(.hidden){height:100%;display:flex;flex-direction:column;min-height:0}
+  #editor>.row.between{flex:0 0 auto;margin-bottom:8px!important}
+  .builder-step #builderLayout{flex:1;min-height:0;grid-template-columns:225px minmax(0,1fr);gap:10px;align-items:stretch}
+  #builderLayout>.panel{min-height:0;padding:10px 12px}
+  #builderLayout>aside:first-child{overflow-y:auto;scrollbar-width:thin}
+  #builderLayout>.panel:nth-child(2){display:flex;flex-direction:column;overflow:hidden}
+  #builderLayout>.panel:nth-child(2)>.row.between{flex:0 0 auto;margin-bottom:5px!important}
+  .animation-controls{flex:0 0 auto;padding:6px 8px;margin-bottom:5px}
+  .animation-controls>.row:first-child{margin-bottom:2px}
+  .animation-controls .tool,.animation-controls>button:not(.subtle-help){padding:5px 8px;min-height:28px;font-size:11px}
+  .animation-controls .toolbar{margin:0 0 0 6px}
+  .animation-controls .toolbar button{padding:5px 7px;min-height:28px;font-size:11px}
+  .animation-controls #editorHint{margin:3px 0 0;padding:4px 7px;font-size:11px}
+  .canvas-selection{flex:0 0 auto;padding:4px 8px;margin-bottom:5px}
+  #canvas.field{flex:1 1 auto;height:0!important;min-height:130px;max-height:none!important;width:100%;border-width:2px;object-fit:contain;background:#1e583e}
+  .actions{flex:0 0 auto;margin-top:5px;gap:5px}
+  .actions button,.actions select{padding:4px 7px;font-size:11px}
+  .actions .muted{font-size:11px}
+  .movement-list{flex:0 0 auto;max-height:95px;overflow-y:auto;margin-top:3px;scrollbar-width:thin}
+  .movement-list #pathList{margin-top:2px}
+  #builderLayout>aside:first-child h2{font-size:14px;margin-bottom:6px}
+  #builderLayout .formfield{margin:6px 0}
+  .equipment-title{margin:9px 0 5px}
+  .toolgrid .tool{min-height:30px;padding:6px 4px}
+  #builderLayout>aside:first-child hr{margin:9px 0!important}
+  .details-step #builderLayout{overflow:auto;display:block}
+  .details-step #detailsPanel{overflow:visible;max-height:none}
+}
+@media(max-width:1059px){body{overflow:auto}}
+</style><style>
+.movement-list{max-height:150px!important;overflow-y:hidden!important;min-height:94px}
+.timeline-track{display:flex;gap:9px;overflow-x:auto;overflow-y:hidden;padding:7px 2px 10px;scrollbar-width:thin}
+.timeline-card{flex:0 0 195px;border:1px solid #d7e0eb;background:#f8fbff;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:5px;font-size:11px}
+.timeline-head{display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}.timeline-head strong{overflow:hidden;text-overflow:ellipsis}
+.timeline-number{display:inline-flex;align-items:center;justify-content:center;flex:0 0 20px;height:20px;background:#f4c947;border-radius:50%;font-weight:800}
+.timeline-actions{display:flex;gap:4px}.timeline-actions button{padding:2px 9px;min-height:23px}
+.timeline-card label{display:flex;align-items:center;justify-content:space-between;gap:5px}.timeline-card select{width:115px;min-width:0;padding:3px;font-size:11px}.timeline-card input{width:49px;padding:3px;font-size:11px}
+<style>
+/* V34: give the action strip a dedicated row without forcing page scrolling */
+@media(min-width:1060px){
+ .movement-list{flex:0 0 118px!important;min-height:0!important;max-height:118px!important;overflow:hidden!important;padding-top:2px}
+ .movement-list>.row{min-height:17px}
+ .timeline-track{height:94px;padding:3px 1px 6px;gap:6px}
+ .timeline-card{flex-basis:215px;padding:5px 7px;gap:3px;min-height:84px}
+ .timeline-card label{font-size:10px}
+ .timeline-card select{padding:2px;max-width:116px}
+ .timeline-card input{padding:2px}
+ .timeline-actions button{min-height:19px;padding:1px 7px}
+ #canvas.field{min-height:115px}
+ .animation-controls{padding:5px 7px}
+ .animation-controls #editorHint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+</style></style><style>
+/* V35: action timeline and tool hierarchy */
+.animation-controls{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.animation-controls>.row:first-child{flex:0 0 100%;margin:0!important}
+.animation-controls .tool{border-color:#aebed0;background:#fff;font-weight:650}
+.animation-controls #moveTool.active{background:#fff0ba;border-color:#d6a81c}
+.animation-controls #selectTool.active{background:#e7f0ff;border-color:#7199d4;box-shadow:inset 0 0 0 1px #7199d4}
+.animation-controls .finish-action{background:#e7f5eb;border-color:#8cbd98;color:#155d30;font-weight:750}
+.animation-controls #editorHint{flex:1 1 100%;order:3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.animation-controls .toolbar{margin-left:auto!important;display:flex!important;gap:4px!important}
+.movement-list{border-top:1px solid #e4e9f0;padding-top:5px;display:flex;flex-direction:column;min-height:0}
+.movement-list>.row{flex:0 0 auto;gap:5px}
+.movement-list #pathList{flex:1;min-height:0;overflow:hidden}
+.timeline-track{height:100%;max-height:100%;overflow-x:auto;overflow-y:hidden;align-items:stretch;padding:3px 2px 6px}
+.timeline-card{flex:0 0 188px;min-height:0;height:100%;padding:5px 7px;gap:3px;overflow:hidden}
+.timeline-card label{min-height:18px;font-size:10px}
+.timeline-card select{max-width:106px;font-size:10px}
+.timeline-card input{width:40px;font-size:10px}
+.timeline-actions button{padding:1px 8px}
+@media(min-width:1060px){
+ .movement-list{flex:0 0 138px!important;max-height:138px!important;min-height:138px!important;overflow:hidden!important}
+ .movement-list #pathList{margin-top:3px!important}
+ .timeline-track{height:111px!important}
+ .timeline-card{flex-basis:190px!important;min-height:0!important;height:106px!important}
+ .animation-controls{padding:5px 7px!important}
+ .animation-controls .tool,.animation-controls>button:not(.subtle-help){margin:0!important;min-height:28px!important}
+ .animation-controls .toolbar{margin:0 0 0 auto!important}
+ .animation-controls #editorHint{margin:0!important;padding:3px 7px!important}
+ #canvas.field{min-height:100px!important}
+}
+@media(max-width:1059px){.movement-list{height:170px}.timeline-track{height:135px}.timeline-card{height:126px}}
+</style><style>
+/* V36 compact, readable timeline cards */
+.timeline-track{gap:9px!important;padding:5px 2px 7px!important}
+.timeline-card{flex:0 0 218px!important;height:100%!important;min-height:0!important;padding:7px 9px!important;gap:5px!important;background:#fff!important;border:1px solid #d5dfeb!important;box-shadow:0 1px 3px #10213a10;cursor:grab}
+.timeline-card.dragging{opacity:.4}
+.timeline-head{gap:6px!important;min-height:19px}
+.timeline-head strong{flex:1;font-size:11px}
+.timeline-delete{margin-left:auto;padding:0 5px!important;min-height:20px!important}
+.timeline-order{display:flex;align-items:center;gap:4px}
+.timeline-order .drag-grip{font-size:10px;color:#64748b;margin-right:auto;white-space:nowrap}
+.timeline-order label{display:flex;align-items:center;gap:4px;font-size:10px}
+.timeline-order input{width:39px!important;padding:2px!important;text-align:center;font-weight:700}
+.timeline-order button{padding:1px 7px!important;min-height:22px!important}
+.timeline-settings{display:grid;grid-template-columns:1fr;gap:3px}
+.timeline-settings label{display:flex;align-items:center;justify-content:space-between;gap:5px;font-size:10px;min-height:19px}
+.timeline-settings select{width:126px!important;max-width:126px!important;font-size:10px;padding:2px!important}
+.timeline-settings input{width:45px!important;padding:2px!important}
+@media(min-width:1060px){.movement-list{flex-basis:180px!important;max-height:180px!important;min-height:180px!important}.timeline-track{height:151px!important}.timeline-card{height:145px!important}#canvas.field{min-height:90px!important}}
+@media(max-width:1059px){.movement-list{height:200px!important;max-height:200px!important}.timeline-track{height:170px!important}.timeline-card{height:164px!important}}
+.animation-controls #coachBallAction{background:#eef4ff;border-color:#94b4de;font-weight:700}
+</style><style>
+/* V37: right-hand action rail, expandable cards and focused whiteboard paths */
+@media(min-width:1060px){
+ .builder-step #builderLayout>.panel:nth-child(2){display:grid!important;grid-template-columns:minmax(0,1fr) 245px;grid-template-rows:auto auto minmax(0,1fr);column-gap:9px;align-content:stretch}
+ .builder-step #builderLayout>.panel:nth-child(2)>.row.between{grid-column:1/-1}
+ .builder-step .animation-controls{grid-column:1/-1}
+ .whiteboard-stage{grid-column:1;grid-row:3;display:flex;flex-direction:column;min-height:0;min-width:0}
+ .whiteboard-stage #canvas.field{flex:1 1 auto;min-height:0!important;height:0!important}
+ .whiteboard-stage .actions{flex-wrap:wrap}
+ .builder-step .movement-list{grid-column:2;grid-row:3;display:flex!important;flex-direction:column;flex-basis:auto!important;min-height:0!important;max-height:none!important;height:auto!important;overflow:hidden!important;margin:0;padding:7px;border:1px solid #dce4ee;border-radius:10px;background:#f7f9fc}
+ .movement-list>.row .muted{display:none}
+ .movement-list #pathList{flex:1;overflow-y:auto!important;overflow-x:hidden!important;min-height:0}
+ .timeline-track{display:flex!important;flex-direction:column!important;overflow-y:visible!important;overflow-x:hidden!important;height:auto!important;max-height:none!important;padding:4px 1px!important}
+ .timeline-card{flex:0 0 auto!important;width:100%!important;height:auto!important;min-height:0!important;padding:7px!important;cursor:pointer}
+}
+.timeline-card{transition:border-color .15s,background .15s}
+.timeline-card.action-active{border:2px solid #e3ae21!important;background:#fff9e6!important;box-shadow:0 0 0 2px #f8e3a0}
+.timeline-card .timeline-settings,.timeline-card .timeline-order{display:none}
+.timeline-card.expanded .timeline-settings,.timeline-card.expanded .timeline-order{display:grid}
+.timeline-card .timeline-order{grid-template-columns:auto 1fr auto auto;align-items:center}
+.timeline-card .timeline-head{white-space:normal;overflow:visible}
+.timeline-card .timeline-head strong{white-space:normal;line-height:1.25}
+.timeline-expand{border:0;background:transparent;padding:0 4px;font-size:14px;cursor:pointer}
+.timeline-card .timeline-head .timeline-delete{flex:0 0 auto}
+@media(max-width:1059px){.whiteboard-stage{display:contents}.timeline-card{flex:0 0 215px!important;height:auto!important}.timeline-track{overflow-x:auto!important}}
+
+/* V38: focused action controls and accessible reorder handle */
+.timeline-card .timeline-head{display:flex;gap:5px;align-items:center}
+.timeline-card .timeline-head strong{flex:1;min-width:0;font-size:11px}
+.drag-handle{display:inline-flex;align-items:center;justify-content:center;width:25px;height:29px;border:1px solid #c8d4e4;border-radius:7px;background:#eaf0f8;color:#244a76;font-size:20px;cursor:grab;touch-action:none;flex-shrink:0}
+.drag-handle:active{cursor:grabbing;background:#ffebaf}
+.timeline-card .timeline-order{grid-template-columns:1fr auto auto auto;gap:5px;margin-top:7px}
+.timeline-card .timeline-order button{min-width:32px;min-height:29px;font-size:16px;font-weight:bold}
+.timeline-card .timeline-order input{width:44px!important}
+.timeline-card .timeline-settings{display:none;grid-template-columns:1fr!important;gap:9px!important;margin-top:10px}
+.timeline-card.expanded .timeline-settings{display:grid!important}
+.timeline-card .setting-block{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:11px}
+.timeline-card .setting-label{font-size:11px;font-weight:700;color:#34435b}
+.timeline-card .setting-block select{width:100%;min-width:0;height:34px;font-size:11px;padding:5px;border:1px solid #cdd7e6;border-radius:7px;background:white}
+.segmented-choice,.duration-choices{display:flex;gap:4px}
+.delivery-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.delivery-choices button{min-width:0;border:1px solid #cdd7e6;background:#fff;border-radius:7px;padding:8px 4px;font-size:11px;font-weight:650;cursor:pointer}
+.delivery-choices button.chosen{background:#ffebad;border-color:#dca921;color:#192c4a;font-weight:800}
+.movement-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.movement-choices button{min-width:0;border:1px solid #cdd7e6;background:#fff;border-radius:7px;padding:8px 4px;font-size:11px;font-weight:650;cursor:pointer}
+.movement-choices button.chosen{background:#ffebad;border-color:#dca921;color:#192c4a;font-weight:800}
+.segmented-choice button,.duration-choices button{flex:1;min-width:0;white-space:normal;line-height:1.1;padding:8px 3px;border:1px solid #cdd7e6;background:#fff;border-radius:7px;font-size:10px;cursor:pointer}
+.segmented-choice button.chosen,.duration-choices button.chosen{background:#ffebad;border-color:#dca921;color:#192c4a;font-weight:800}
+.timeline-card .custom-duration{display:flex;flex-direction:row;align-items:center;justify-content:space-between;color:#64748b;font-size:10px}
+.timeline-card .custom-duration input{width:66px!important;padding:5px!important;border:1px solid #cdd7e6;border-radius:6px;font-size:12px}
+.timeline-card.expanded{border-color:#e3ae21!important}
+.communication-block{border-top:1px solid #e3e8f0;padding-top:10px}.communication-toggle{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;width:100%;gap:12px!important;font-size:12px!important;font-weight:750;cursor:pointer;padding:8px 10px;border:1px solid #dbe3ed;border-radius:8px;background:#f8fafc;box-sizing:border-box}.communication-toggle input[type="checkbox"]{appearance:auto!important;-webkit-appearance:checkbox!important;display:block!important;position:static!important;flex:0 0 19px!important;width:19px!important;height:19px!important;min-width:19px!important;margin:0!important;padding:0!important;accent-color:#d5a11d;cursor:pointer}.communication-toggle:has(input:checked){background:#fff4cf;border-color:#d5a11d}.communication-fields{display:grid;gap:7px;margin-top:9px}.communication-fields textarea{box-sizing:border-box;width:100%;min-height:60px;resize:vertical;border:1px solid #cdd7e6;border-radius:7px;padding:8px;font:inherit;font-size:12px}.communication-choices{display:grid;grid-template-columns:1fr;gap:5px}.communication-choices button{border:1px solid #cdd7e6;background:white;border-radius:7px;padding:7px;text-align:left;font-size:11px;cursor:pointer}.communication-choices button.chosen{background:#ffebad;border-color:#dca921;font-weight:750}
+.timeline-actions{display:flex;flex-wrap:wrap;gap:5px;padding:7px 0;border-bottom:1px solid #e2e8f0;margin-bottom:6px}.timeline-actions button{font-size:11px;padding:6px 9px;white-space:nowrap}.timeline-actions button:last-child{margin-left:auto}
+.app-nav{display:flex;align-items:center;gap:9px;background:white;border-bottom:1px solid #e1e7ee;padding:9px 25px}.app-nav button{border:0;background:#f0f3f8;color:#17253d;border-radius:9px;padding:10px 15px;font-weight:700;cursor:pointer}.app-nav button:hover{background:#ffdf59}.app-nav span{margin-left:auto;color:#65748a;font-size:12px}.admin-grid{display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.3fr);gap:18px;margin-top:24px}.surface-entry{display:flex;gap:15px;padding:12px;border:1px solid #dfe5ed;border-radius:12px;margin-bottom:10px;align-items:center}.surface-entry img{width:130px;height:85px;object-fit:cover;border-radius:8px}.surface-entry .row{margin-top:10px;flex-wrap:wrap}@media(max-width:760px){.admin-grid{grid-template-columns:1fr}.app-nav{padding:9px;flex-wrap:wrap}.app-nav span{display:none}}
+</style></head><body><header><strong>🏏 Cricket Activity Studio</strong><span style="font-size:12px;opacity:.7">Personal coaching library · App foundation v44 · Fielding</span></header><nav class="app-nav"><button onclick="showLibrary()">My Library</button><button onclick="newActivity()">Activity Builder</button><button onclick="showAdmin()">Admin Studio</button><span>Cricket · Personal workspace</span></nav><main class="shell"><section id="admin" class="hidden"><div class="row between"><div><h1>Admin Studio</h1><p class="muted">Manage your cricket playing surfaces and reusable facility layouts.</p></div><button onclick="showLibrary()">← My Library</button></div><div class="admin-grid"><div class="panel"><h2>Add a playing surface</h2><p class="muted">Upload a photo, aerial image or diagram of your training facility. PNG, JPEG or WebP, up to 2 MB.</p><div class="formfield"><label>Surface name</label><input id="surfaceName" placeholder="e.g. Club Oval — East Nets"></div><div class="formfield"><label>Facility image</label><input id="surfaceFile" type="file" accept="image/png,image/jpeg,image/webp"></div><button class="primary" onclick="saveSurface()">Save playing surface</button><p id="surfaceStatus" class="muted" role="status"></p></div><div class="panel"><h2>My playing surfaces</h2><div id="surfaceCards"></div></div></div></section><section id="library"><div class="row between"><div><h1>My Activity Library</h1><div class="muted">Build and save fielding activities with match-based movement and communication.</div></div><button class="primary" onclick="newActivity()">+ Create activity</button></div><div class="row" style="margin-top:22px"><input id="search" style="max-width:340px" placeholder="Search activities or match situations" oninput="renderLibrary()"><select id="filter" onchange="renderLibrary()" style="padding:10px;border:1px solid #d9e0e8;border-radius:8px"><option>All skills</option><option>Fielding</option></select></div><div id="cards" class="grid"></div><div class="future-admin"><strong>Admin workspace — coming later</strong><button class="subtle-help" type="button" onclick="showHelp('admin')">? What will Admin manage?</button></div></section><section id="editor" class="hidden"><div class="row between" style="margin-bottom:15px"><div class="editor-heading"><button onclick="showLibrary()">← Library</button> <strong id="editorTitle">New activity</strong> <button class="help-icon" type="button" onclick="showHelp('builder')" aria-label="How to build a fielding drill" title="How to build a fielding drill">?</button></div><div class="row"><button onclick="duplicateActivity()">Duplicate</button><span class="pill" id="stepIndicator">Step 1 of 2 · Build & animate</span><button class="primary" id="headerNextButton" onclick="setEditorStep(2)">Next: Activity Details →</button></div></div><div class="layout" id="builderLayout"><aside class="panel"><h2>Build & animate your fielding drill</h2><div class="formfield"><label>Training space</label><select id="space" onchange="updateSpace()"><option>Small fielding area</option><option>Large fielding area</option><option>Court</option></select></div><div class="formfield"><label>Facility background</label><select id="facilitySurface" onchange="changeFacilitySurface()"><option value="">Standard playing surface</option></select><div class="muted" style="font-size:11px;margin-top:5px">Manage custom surfaces in Admin Studio.</div></div><div class="equipment-title">Fixed setup <span>Position these; they never animate</span></div><div class="toolgrid" id="fixedTools"></div><div class="equipment-title">Players & ball <span>Can move during playback</span></div><div class="toolgrid" id="movingTools"></div></aside><div class="panel"><div class="row between" style="margin-bottom:10px"><strong>Your coaching whiteboard</strong><span class="pill" id="modeLabel">Place player</span></div><div class="animation-controls"><div class="row between"><strong>Movement tools</strong><button class="subtle-help" type="button" onclick="showHelp('animation')">? Help</button></div><button id="selectTool" class="tool" onclick="setTool('select')">✋ Select / reposition</button><button id="coachBallAction" class="tool" style="display:none" onclick="startCoachBallReturn()">🏏 Build passing sequence</button><button id="moveTool" class="tool" onclick="setTool('move')">↗ Draw movement</button><button class="finish-action" onclick="finishPath()">✓ Save movement</button> <button onclick="undoPoint()">↶ Remove point</button><div class="tipbar" id="editorHint" role="status">Select an item, then draw its movement.</div></div><div class="whiteboard-stage"><div id="canvasSelection" class="canvas-selection">Nothing selected — click an item on the field</div><svg id="canvas" class="field" viewBox="0 0 700 530" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-label="Editable cricket training field"></svg><div class="row actions"><button class="primary" onclick="togglePlay()" id="playButton">▶ Play</button><button onclick="resetAnimation()">↺ Reset</button><label class="muted">Playback <select id="playbackMode"><option value="smart" selected>Smart cricket</option><option value="sequence">Sequence</option><option value="together">Together (timed)</option></select></label><label class="muted"><input id="loop" type="checkbox" checked> Loop</label><label class="muted">Speed <select id="speed"><option value="1">Normal</option><option value=".5">Slow</option><option value="2">Fast</option></select></label><button onclick="removeSelected()">Delete selected</button></div></div><div class="movement-list"><div class="row between"><strong style="font-size:12px">Action timeline</strong><span class="muted" style="font-size:11px">⠿ drag handle or ↑ ↓ to reorder</span></div><div class="timeline-actions"><button onclick="undoLast()" title="Undo last change">↶ Undo</button><button onclick="loadExample()" title="Load an example drill">Try example</button><button onclick="clearCanvas()" title="Clear all items and actions">Clear field</button></div><div id="pathList"></div></div></div><aside class="panel" id="detailsPanel"><h2>2. Activity Details</h2><div class="formfield" id="variationInfo" style="display:none"><label>What changes in this variation / progression?</label><textarea id="variationNotes" placeholder="Describe the adjustment, why it helps and how to coach it."></textarea></div><div class="formfield"><label>Activity name</label><input id="name" placeholder="e.g. Beat the Single"></div><div class="formfield"><label>Discipline (fielding first)</label><select id="skill"><option>Fielding</option></select></div><div class="formfield"><label>Minimum players</label><div class="row"><input id="players" type="number" min="0" step="1" placeholder="Calculated from whiteboard" oninput="updatePlayerCountUI()"><button type="button" id="playerAutoButton" onclick="resetPlayerOverride()">Use automatic</button></div><div class="muted" id="playerCountHint" style="margin-top:6px"></div></div><div class="formfield"><label>What game situations does this replicate?</label><textarea id="situation" placeholder="Describe the match situations this drill recreates."></textarea></div><div class="formfield"><label>What should the players walk away with from this?</label><textarea id="outcomes" placeholder="Describe what players should be able to do or understand afterwards."></textarea></div><div class="formfield"><label>Simple setup & instructions</label><div class="muted" style="margin:4px 0 10px">Add one clear instruction at a time, then finish the steps.</div><div id="instructionSteps"></div><div class="row" style="margin-top:10px"><button type="button" id="addInstructionButton" onclick="addInstructionStep()">+ Add step</button><button type="button" id="finishInstructionButton" onclick="finishInstructionSteps()">Finish steps</button><button type="button" id="editInstructionButton" onclick="editInstructionSteps()" style="display:none">Edit steps</button></div><div id="instructionStatus" class="muted" style="margin-top:7px"></div></div><div class="muted" style="margin:12px 0">Variations and progressions are added after saving, from the activity library. Each gets its own version and details.</div><div class="row" style="margin-top:18px"><button onclick="setEditorStep(1)">← Back to animation</button><button class="primary" style="flex:1" onclick="saveActivity()">Save to library</button></div></aside></div></section></main><dialog id="helpDialog" class="help-dialog" onclick="if(event.target===this)this.close()"><button class="close" onclick="document.getElementById('helpDialog').close()" aria-label="Close help">✕</button><h2 id="helpHeading"></h2><div id="helpContent"></div><button class="primary" onclick="document.getElementById('helpDialog').close()">Got it</button></dialog><script>
+function showHelp(topic){const content={builder:['Create a fielding activity in 2 steps','<ol><li><b>Build & animate:</b> Place fixed equipment, players and the ball on the whiteboard. Add movement paths and test playback. When happy, click Next.</li><li><b>Activity Details:</b> Enter the name, match situation, player outcomes, instructions then save to your library. Add variations later from the library.</li></ol>'],animation:['Animate an item','<p><b>1.</b> Select a player, coach or ball. <b>2.</b> Choose Draw movement and click destinations. <b>3.</b> Save movement. Use Select / reposition to drag icons without animating them.</p>'],playback:['Playback modes','<p><b>Smart cricket:</b> attempts to coordinate receiving the ball with player movement.</p><p><b>Sequence:</b> plays actions one after another.</p><p><b>Together (timed):</b> uses each action’s start time so movements can overlap.</p>'],roles:['Player roles and calls','<p><b>Receiver:</b> collects the ball. <b>Sweeper:</b> backs up play. <b>Independent:</b> moves without waiting for the ball.</p><p>Communication calls appear as speech bubbles during playback.</p>'],admin:['Future Admin workspace','<p>Planned for managing equipment, fielding templates, library categories and future community submissions. It is not enabled in this personal prototype.</p>']}[topic];if(!content)return;document.getElementById('helpHeading').textContent=content[0];document.getElementById('helpContent').innerHTML=content[1];document.getElementById('helpDialog').showModal();}
+const KEY='cricket_activity_studio_v1';let activities=JSON.parse(localStorage.getItem(KEY)||'[]');let surfaces=JSON.parse(localStorage.getItem('cricket_activity_surfaces_v1')||'[]');let current=null,tool='player',selected=null,drawing=null,playing=false,animStart=0,animFrame=0,drag=null;
+const defs=[['stumps','🏏 Wickets'],['singleStump','│ Single stump'],['cone','🔶 Cone'],['catchingRamp','🟠 Catching ramp'],['player','🟡 Player'],['ball','🔴 Ball'],['coachBat','🏏 Coach + bat'],['coachBall','🔵 Coach + ball'],['coach','🔵 Coach']];
+const fixedTypes=new Set(['stumps','singleStump','cone','catchingRamp']);
+const movingTypes=new Set(['player','ball','coachBat','coachBall','coach']);
+const $=id=>document.getElementById(id);const clone=x=>JSON.parse(JSON.stringify(x));const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function persist(){localStorage.setItem(KEY,JSON.stringify(activities))}
+function showLibrary(){resetAnimation();$('editor').classList.add('hidden');$('admin').classList.add('hidden');$('library').classList.remove('hidden');renderLibrary()}
+function showAdmin(){resetAnimation();$('editor').classList.add('hidden');$('library').classList.add('hidden');$('admin').classList.remove('hidden');renderSurfaces()}
+function renderSurfaces(){const host=$('surfaceCards');host.innerHTML=surfaces.length?surfaces.map(x=>`<div class="surface-entry"><img src="${x.image}" alt="${esc(x.name)}"><div><strong>${esc(x.name)}</strong><div class="row"><button onclick="useSurface('${x.id}')">Use in activity</button><button onclick="deleteSurface('${x.id}')">Delete</button></div></div></div>`).join(''):'<p class="muted">No custom surfaces yet. Add your first facility above.</p>'}
+function saveSurface(){const name=$('surfaceName').value.trim(),file=$('surfaceFile').files[0];if(!name||!file){$('surfaceStatus').textContent='Enter a name and select an image.';return}if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>2*1024*1024){$('surfaceStatus').textContent='Use a PNG, JPEG or WebP image under 2 MB.';return}const reader=new FileReader();reader.onload=()=>{const entry={id:crypto.randomUUID(),name,image:reader.result};try{localStorage.setItem('cricket_activity_surfaces_v1',JSON.stringify([...surfaces,entry]));surfaces.push(entry);$('surfaceName').value='';$('surfaceFile').value='';$('surfaceStatus').textContent='Surface saved to this browser.';renderSurfaces()}catch(e){$('surfaceStatus').textContent='Browser storage is full. Try a smaller image.'}};reader.readAsDataURL(file)}
+function deleteSurface(id){if(!confirm('Delete this surface? Existing activities using it will revert to the standard background.'))return;surfaces=surfaces.filter(x=>x.id!==id);localStorage.setItem('cricket_activity_surfaces_v1',JSON.stringify(surfaces));renderSurfaces()}
+function useSurface(id){newActivity();current.surfaceId=id;syncSurfaceSelector();renderCanvas()}
+function syncSurfaceSelector(){const el=$('facilitySurface');el.innerHTML='<option value="">Standard playing surface</option>'+surfaces.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');el.value=current?.surfaceId||''}
+function changeFacilitySurface(){current.surfaceId=$('facilitySurface').value;resetAnimation();renderCanvas()}
+function renderLibrary(){const q=$('search').value.toLowerCase(),f=$('filter').value;const found=activities.filter(a=>(f==='All skills'||a.skill===f)&&[a.name,a.situation,a.skill,a.space].join(' ').toLowerCase().includes(q));$('cards').innerHTML=found.length?found.map(a=>`<article class="card"><div class="thumb"><svg viewBox="0 0 240 120" width="240" height="120"><rect x="108" y="10" width="24" height="100" fill="#c7b68e" opacity=".45"/>${(a.items||[]).map(p=>`<circle cx="${p.x*240/700}" cy="${p.y*120/530}" r="5" fill="${p.type==='ball'?'#f66':p.type==='player'?'#f1c54b':'#d9e9ef'}"/>`).join('')}<path d="M120 15V105" stroke="#fff" opacity=".4" stroke-dasharray="4 4"/></svg></div><div class="info"><h3>${esc(a.name||'Untitled activity')}</h3><div class="muted">${esc(a.skill)} · ${esc(a.space)} · <b>Version ${esc(a.version||'1')}</b></div><p>${esc(a.situation||'No match situation added yet.')}</p>${a.parentId?'<p class="muted"><b>Variation:</b> '+esc(a.variationNotes||'No variation notes yet')+'</p>':''}</div><div class="row"><button onclick="openActivity('${a.id}')">Open / Edit</button><button onclick="addVariation('${a.id}')">+ Add variation</button><button onclick="copySaved('${a.id}')">Duplicate</button><button onclick="deleteSaved('${a.id}')">Delete</button></div></article>`).join(''):'<div class="panel" style="grid-column:1/-1;text-align:center;padding:45px"><h2>No activities yet</h2><p class="muted">Create your first drill and save it here.</p><button class="primary" onclick="newActivity()">+ Create activity</button></div>'}
+function newActivity(){current={id:crypto.randomUUID(),name:'',skill:'Fielding',space:'Small fielding area',players:'',playerOverride:false,situation:'',outcomes:'',instructions:'',instructionSteps:[],instructionsFinished:false,variations:'',version:'1',parentId:null,items:[],paths:[]};openEditor()}
+function addVariation(id){const base=activities.find(a=>a.id===id);if(!base)return;const root=base.parentId||base.id;const parent=activities.find(a=>a.id===root)||base;const existing=activities.filter(a=>a.parentId===root).map(a=>Number(String(a.version||'').split('.')[1])||0);const next=Math.max(0,...existing)+1;current=clone(base);current.id=crypto.randomUUID();current.parentId=root;current.version='1.'+next;current.name=parent.name+' — Variation '+next;current.variationNotes='';openEditor();$('editorTitle').textContent='New variation · Version '+current.version;setHint('Modify the drill animation, then click Next to add the variation details.');}
+function openActivity(id){current=clone(activities.find(a=>a.id===id));openEditor()}
+function setEditorStep(step){if(drawing)finishPath();resetAnimation();$('editor').classList.toggle('details-step',step===2);$('editor').classList.toggle('builder-step',step===1);$('stepIndicator').textContent=step===1?'Step 1 of 2 · Build & animate':'Step 2 of 2 · Activity Details';if(step===2){updatePlayerCountUI();renderInstructionSteps();window.scrollTo({top:0,behavior:'smooth'});$('name').focus()}else{renderCanvas();window.scrollTo({top:0,behavior:'smooth'})}}
+function openEditor(){resetAnimation();setEditorStep(1);$('library').classList.add('hidden');$('admin').classList.add('hidden');$('editor').classList.remove('hidden');for(const k of ['name','skill','space','situation','outcomes'])$(k).value=current[k]||'';$('players').value=current.playerOverride?current.players:countPlayers();loadInstructionSteps();updatePlayerCountUI();if(!['Small fielding area','Large fielding area','Court'].includes(current.space)){current.space='Small fielding area';$('space').value=current.space;}$('editorTitle').textContent=(current.name||'New activity')+(current.version?' · Version '+current.version:'');$('variationInfo').style.display=current.parentId?'block':'none';$('variationNotes').value=current.variationNotes||'';selected=null;drawing=null;syncSurfaceSelector();setTool('select');renderCanvas()}
+function saveActivity(){for(const k of ['name','skill','space','situation','outcomes'])current[k]=$(k).value;current.players=current.playerOverride?$('players').value:String(countPlayers());current.instructionSteps=readInstructionSteps();current.instructionsFinished=instructionLocked;current.instructions=current.instructionSteps.map((v,i)=>(i+1)+'. '+v).join('\n');if(current.parentId)current.variationNotes=$('variationNotes').value;if(!current.name.trim()){alert('Add an activity name before saving.');return}const i=activities.findIndex(a=>a.id===current.id);if(i<0)activities.unshift(clone(current));else activities[i]=clone(current);persist();showLibrary()}
+function countPlayers(){return (current?.items||[]).filter(item=>item.type==='player').length}
+function updatePlayerCountUI(){if(!current)return;const count=countPlayers();const input=$('players');if(!current.playerOverride)input.value=count;const entered=Number(input.value);$('playerCountHint').textContent=`${count} player${count===1?'':'s'} on the whiteboard. ${current.playerOverride?'Manual override active.':'Minimum automatically matches the whiteboard.'}`+(current.playerOverride&&entered<count?' Warning: override is below the number shown.':'');$('playerAutoButton').style.display=current.playerOverride?'inline-block':'none'}
+function resetPlayerOverride(){current.playerOverride=false;updatePlayerCountUI()}
+$('players').addEventListener('input',()=>{if(!current)return;current.playerOverride=true;updatePlayerCountUI()});
+let instructionDraft=[],instructionLocked=false;
+function loadInstructionSteps(){instructionDraft=Array.isArray(current.instructionSteps)&&current.instructionSteps.length?current.instructionSteps.slice():String(current.instructions||'').split('\n').map(v=>v.replace(/^\s*\d+[.)]\s*/, '').trim()).filter(Boolean);instructionLocked=!!current.instructionsFinished;renderInstructionSteps()}
+function readInstructionSteps(){if(!instructionLocked){document.querySelectorAll('.instruction-step-input').forEach((el,i)=>instructionDraft[i]=el.value)}return instructionDraft.map(x=>x.trim()).filter(Boolean)}
+function renderInstructionSteps(){const list=$('instructionSteps');if(!list)return;list.innerHTML=instructionDraft.map((value,i)=>`<div class="formfield" style="margin-bottom:10px"><div class="row between"><label for="instructionStep${i}">Step ${i+1}</label>${instructionLocked?'':`<button type="button" onclick="removeInstructionStep(${i})" aria-label="Remove step ${i+1}">Remove</button>`}</div>${instructionLocked?`<div style="padding:11px;background:#f3f7fb;border-radius:8px;white-space:pre-wrap">${esc(value)}</div>`:`<textarea class="instruction-step-input" id="instructionStep${i}" rows="2" placeholder="Write one clear action for step ${i+1}" oninput="instructionDraft[${i}]=this.value">${esc(value)}</textarea>`}</div>`).join('');$('addInstructionButton').style.display=instructionLocked?'none':'inline-block';$('finishInstructionButton').style.display=instructionLocked?'none':'inline-block';$('editInstructionButton').style.display=instructionLocked?'inline-block':'none';$('instructionStatus').textContent=instructionLocked?'Steps finished. Select Edit steps to make changes.':'Add steps in order, then click Finish steps.'}
+function addInstructionStep(){instructionDraft=readInstructionSteps();instructionDraft.push('');renderInstructionSteps();const el=$('instructionStep'+(instructionDraft.length-1));if(el)el.focus()}
+function removeInstructionStep(i){instructionDraft=readInstructionSteps();instructionDraft.splice(i,1);renderInstructionSteps()}
+function finishInstructionSteps(){instructionDraft=readInstructionSteps();if(!instructionDraft.length){alert('Add at least one instruction step before finishing.');return}instructionLocked=true;current.instructionsFinished=true;renderInstructionSteps()}
+function editInstructionSteps(){instructionLocked=false;current.instructionsFinished=false;renderInstructionSteps()}
+function duplicateActivity(){current.id=crypto.randomUUID();current.parentId=null;current.version='1';current.name=(current.name||'Activity')+' (copy)';$('name').value=current.name;$('editorTitle').textContent=current.name;alert('Duplicate created. Save to add it to your library.')}
+function copySaved(id){let a=clone(activities.find(a=>a.id===id));a.id=crypto.randomUUID();a.name+=' (copy)';a.parentId=null;a.version='1';activities.unshift(a);persist();renderLibrary()}
+function deleteSaved(id){if(confirm('Delete this activity from your library?')){activities=activities.filter(a=>a.id!==id);persist();renderLibrary()}}
+function updateSpace(){current.space=$('space').value;resetAnimation();renderCanvas()}
+function setTool(t){if(t==='move' && selected && fixedTypes.has(current.items.find(p=>p.id===selected)?.type)){setHint('Fixed setup items cannot animate. Select a player, coach or ball.');t='select'}if(t==='move' && !selected){setHint('Click an item on the whiteboard first.');t='select'}if(drawing && t!=='move')finishPath();tool=t;document.querySelectorAll('.tool').forEach(b=>b.classList.remove('active'));const b=$(t==='move'?'moveTool':t==='select'?'selectTool':'tool-'+t);if(b)b.classList.add('active');$('modeLabel').textContent=t==='move'?'Animate movement':t==='select'?'Move / select':'Add '+t;setHint(t==='move'?(selected?'Animating '+itemLabel(selected)+': click empty destinations, then Finish path.':'Select an item on the field first.'):t==='select'?'Drag any icon to move it. Select an icon to delete it.':'Click the field to add '+t+'.');renderCanvas()}
+for(const [id,label] of defs){const parent=$(fixedTypes.has(id)?'fixedTools':'movingTools');parent.insertAdjacentHTML('beforeend',`<button class="tool" id="tool-${id}" onclick="setTool('${id}')">${label}</button>`)}
+function background(){
+ const custom=surfaces.find(x=>x.id===current.surfaceId);if(custom)return `<image href="${custom.image}" x="0" y="0" width="700" height="530" preserveAspectRatio="xMidYMid slice"/>`;
+ const s=current.space, court=s==='Court',nets=false,indoor=false,large=s==='Large fielding area',wicket=false;
+ let out=`<defs><pattern id="mow" width="90" height="90" patternUnits="userSpaceOnUse"><rect width="90" height="90" fill="#276c49"/><rect width="45" height="90" fill="#21613f"/></pattern><pattern id="floor" width="72" height="72" patternUnits="userSpaceOnUse"><rect width="72" height="72" fill="#c8aa82"/><path d="M0 0H72M0 36H72M36 0V36M0 36V72" stroke="#997f64" stroke-width="1" opacity=".25"/></pattern><pattern id="hardcourt" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="#397f9b"/><path d="M0 0H100M0 100H100" stroke="#fff" opacity=".06"/></pattern></defs>`;
+ if(indoor){out+='<rect width="700" height="530" fill="url(#floor)"/><rect x="48" y="40" width="604" height="450" rx="4" fill="#c2a27a" stroke="#f3e4cc" stroke-width="5"/><path d="M350 40V490" stroke="#fff" stroke-width="3" opacity=".45"/>'}
+ else if(court){out+=`<rect width="700" height="530" fill="#c58d58"/><rect width="700" height="530" fill="url(#floor)" opacity=".26"/><rect x="5" y="5" width="690" height="520" rx="3" fill="none" stroke="#fff8e9" stroke-width="4"/><path d="M350 5V525" stroke="#fff8e9" stroke-width="3"/><circle cx="350" cy="265" r="66" stroke="#fff8e9" stroke-width="3" fill="none"/><rect x="5" y="169" width="145" height="192" fill="#a75d43" fill-opacity=".42" stroke="#fff8e9" stroke-width="3"/><rect x="550" y="169" width="145" height="192" fill="#a75d43" fill-opacity=".42" stroke="#fff8e9" stroke-width="3"/><path d="M150 208A57 57 0 0 1 150 322M550 208A57 57 0 0 0 550 322" fill="none" stroke="#fff8e9" stroke-width="3"/><path d="M5 95H72A170 170 0 0 1 72 435H5M695 95H628A170 170 0 0 0 628 435H695" fill="none" stroke="#fff8e9" stroke-width="3"/><path d="M5 232H37V298H5M695 232H663V298H695" fill="none" stroke="#fff8e9" stroke-width="3"/><circle cx="43" cy="265" r="9" fill="none" stroke="#fff8e9" stroke-width="3"/><circle cx="657" cy="265" r="9" fill="none" stroke="#fff8e9" stroke-width="3"/><path d="M24 248V282M676 248V282" stroke="#fff8e9" stroke-width="4"/>`;}
+
+ else {out+='<rect width="700" height="530" fill="url(#mow)"/>';if(large)out+='<ellipse cx="350" cy="265" rx="316" ry="235" fill="none" stroke="#f4f5ec" stroke-width="3" opacity=".8"/>';else if(false)out+='<ellipse cx="350" cy="265" rx="255" ry="200" fill="none" stroke="#f4f5ec" stroke-width="2" opacity=".38"/>';}
+ if(nets){out+='<rect x="145" y="22" width="410" height="486" rx="4" fill="#ffffff" fill-opacity=".045" stroke="#e1e9e4" stroke-width="4" stroke-dasharray="6 5"/><path d="M145 22L190 48H510L555 22M145 508L190 482H510L555 508" stroke="#e1e9e4" stroke-width="2" fill="none" opacity=".55"/>';}
+ if((large||wicket||nets)&&!indoor&&!court){out+=`<rect x="${wicket?289:318}" y="${wicket?26:87}" width="${wicket?122:64}" height="${wicket?478:356}" rx="3" fill="#c8b28a" stroke="#bca27a" stroke-width="2"/><path d="M${wicket?290:318} ${wicket?92:135}H${wicket?410:382}M${wicket?290:318} ${wicket?438:395}H${wicket?410:382}" stroke="#fff" stroke-width="3"/><path d="M345 ${wicket?79:122}v20m5 -20v20m5 -20v20M345 ${wicket?431:382}v20m5 -20v20m5 -20v20" stroke="#fff" stroke-width="2"/>`;}
+ return out;
+}
+function shape(p,x=p.x,y=p.y){let stroke=selected===p.id?'#fff':'#dce5ef',ring=selected===p.id?'<circle r="22" fill="none" stroke="white" stroke-width="2" stroke-dasharray="4 3"/>':'';let inner={player:'<circle r="15" fill="#f3c84b" stroke="#fff" stroke-width="2"/>',coach:'<circle r="15" fill="#73b9ff" stroke="#fff" stroke-width="2"/>',coachBat:'<circle r="15" fill="#73b9ff" stroke="#fff" stroke-width="2"/><path d="M7 -19L17 3" stroke="#f4d49c" stroke-width="7" stroke-linecap="round"/><circle cx="-17" cy="-12" r="6" fill="#e95e61" stroke="white" stroke-width="1.5"/>',coachBall:'<circle r="15" fill="#73b9ff" stroke="#fff" stroke-width="2"/><circle cx="16" cy="-10" r="6" fill="#e95e61" stroke="white" stroke-width="1.5"/>',ball:'<circle r="8" fill="#e95e61" stroke="#fff" stroke-width="2"/>',stumps:'<path d="M-10 -17V18M0 -17V18M10 -17V18M-13 -17H13" stroke="white" stroke-width="4"/>',singleStump:'<path d="M0 -19V19" stroke="white" stroke-width="5"/><circle cy="-19" r="3" fill="#f2c94c"/>',cone:'<path d="M0 -16L-15 15H15Z" fill="#ff9449" stroke="#fff" stroke-width="2"/>',catchingRamp:'<path d="M-20 13L16 -12L20 13Z" fill="#ff891f" stroke="#fff" stroke-width="2"/><path d="M-12 8L12 -8" stroke="#ffd1a1" stroke-width="3"/>',bat:'<rect x="-7" y="-20" width="14" height="40" rx="3" fill="#d4b184" stroke="white" stroke-width="2"/>',hoop:'<circle r="17" fill="none" stroke="#80d3ff" stroke-width="6"/>',target:'<circle r="18" fill="#f4f5f6"/><circle r="12" fill="#d95656"/><circle r="6" fill="#fff"/>'}[p.type];return `<g transform="translate(${x} ${y})" data-id="${p.id}" style="cursor:grab">${ring}${inner}${['player','coach','coachBat','coachBall'].includes(p.type)?`<text x="0" y="5" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="800" fill="#17233a" stroke="none" pointer-events="none">${Number(p.number)||current.items.filter(q=>q.type===p.type&&current.items.indexOf(q)<=current.items.indexOf(p)).length}</text>`:''}</g>`}
+function renderCanvas(){if(!current)return;updateSelectedBanner();let svg=background();for(const path of current.paths){if(fixedTypes.has(current.items.find(i=>i.id===path.itemId)?.type))continue;if(path.points.length>1){const active=current.paths.indexOf(path)===selectedActionIndex;svg+=`<polyline points="${path.points.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${active?'#ff5b38':path.type==='ball'?'#ffde79':'#9ad4ff'}" stroke-width="${active?7:3}" stroke-dasharray="${active?'none':'8 6'}" opacity="${selectedActionIndex!==null&&!active?.38:.85}"/>`;if(active){const q=path.points.at(-1);svg+=`<circle cx="${q[0]}" cy="${q[1]}" r="10" fill="none" stroke="#ff5b38" stroke-width="4"/>`;}}}if(drawing&&drawing.points.length>1)svg+=`<polyline points="${drawing.points.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="4 4"/>`;for(const p of current.items)svg+=shape(p);$('canvas').innerHTML=svg;renderPathList()}
+const coachTypes=new Set(['coach','coachBat','coachBall']);
+function deliverySource(path){const explicit=current.items.find(i=>i.id===path.sourceId&&['player',...coachTypes].includes(i.type));if(explicit)return explicit;const origin=path.points?.[0];if(!origin)return null;const nearby=current.items.filter(i=>i.type==='player'||coachTypes.has(i.type)).map(i=>({item:i,d:Math.hypot(i.x-origin[0],i.y-origin[1])})).sort((a,b)=>a.d-b.d)[0];return nearby&&nearby.d<=65?nearby.item:null}
+function deliveryOptions(path){const source=deliverySource(path);return source?.type==='player'?[['underarm','Underarm throw'],['overarm','Overarm throw']]:[['ground','Ground ball'],['low','Low catch'],['high','High catch']]}
+function validDelivery(path){const opts=deliveryOptions(path);return opts.some(([v])=>v===path.deliveryType)?path.deliveryType:opts[0][0]}
+function setDeliveryType(i,v){const p=current.paths[i];if(p){p.deliveryType=v;renderCanvas()}}
+function setDeliverySource(i,v){const p=current.paths[i];if(p){p.sourceId=v||null;p.deliveryType=deliveryOptions(p)[0][0];renderCanvas()}}
+function deliveryName(v){return ({high:'High catch',low:'Low catch',ground:'Ground ball',underarm:'Underarm throw',overarm:'Overarm throw'})[v]||'Ground ball'}
+function deliveryOffset(type,progress){const hump=4*progress*(1-progress);return type==='high'?76*hump:type==='low'?25*hump:type==='overarm'?55*hump:type==='underarm'?16*hump:0}
+function deliveryPoint(path,progress){const pt=interpolate(path.points,progress);const kind=validDelivery(path);let lift=deliveryOffset(kind,progress);if(kind==='ground')lift=3*Math.abs(Math.sin(progress*Math.PI*7))*(1-progress);return [pt[0],pt[1]-lift]}
+function renderPathList(){
+ const items=current.paths;
+ $('pathList').innerHTML='<div class="timeline-track">'+items.map((p,i)=>{
+ const src=p.type==='ball'?deliverySource(p):null;
+ const dst=p.type==='ball'?current.items.find(x=>x.id===p.receiverId||x.id===p.targetId):null;
+ const title=p.type==='ball'?'🏏 '+(src?itemLabel(src.id):'Ball')+' → '+(dst?itemLabel(dst.id):'Target'):'🏃 '+itemLabel(p.itemId)+' runs'+(p.segment?' · leg '+p.segment:'');
+ const options=p.type==='ball'?deliveryOptions(p):[];
+ return `<div class="timeline-card ${selectedActionIndex===i?'action-active':''} ${expandedActions.has(p.id||i)?'expanded':''}" onclick="focusAction(${i})" ondragover="timelineDragOver(event)" ondrop="timelineDrop(event,${i})"><div class="timeline-head"><span class="timeline-number">${i+1}</span><span class="drag-handle" draggable="true" ondragstart="event.stopPropagation();timelineDragStart(event,${i})" ondragend="timelineDragEnd(event)" title="Drag here to reorder">⠿</span><strong title="${esc(title)}">${esc(title)}</strong><button class="timeline-expand" onclick="event.stopPropagation();toggleActionDetails(${i})" title="Expand action settings">${expandedActions.has(p.id||i)?"▴":"▾"}</button><button class="timeline-delete" onclick="event.stopPropagation();deletePath(${i})" title="Delete action">×</button></div><div class="timeline-order"><span class="drag-grip">Move action</span><label>Order <input type="number" min="1" max="${items.length}" value="${i+1}" onchange="setPathOrder(${i},this.value)" aria-label="Action order"></label><button onclick="event.stopPropagation();movePath(${i},-1)" ${i===0?'disabled':''} title="Move earlier">←</button><button onclick="event.stopPropagation();movePath(${i},1)" ${i===items.length-1?'disabled':''} title="Move later">→</button></div><div class="timeline-settings"><div class="setting-block"><span class="setting-label">When does it start?</span><div class="segmented-choice"><button class="${(p.timelineStart||'after')==='after'?'chosen':''}" onclick="event.stopPropagation();setTimelineStart(${i},'after')">After previous</button><button class="${p.timelineStart==='with'?'chosen':''}" onclick="event.stopPropagation();setTimelineStart(${i},'with')">At same time</button></div></div>${p.type==='ball'?`<div class="setting-block"><span class="setting-label">Ball delivery</span><div class="delivery-choices">${options.map(([v,n])=>`<button class="${validDelivery(p)===v?'chosen':''}" onclick="event.stopPropagation();setDeliveryType(${i},'${v}')">${n}</button>`).join('')}</div></div>`:`<div class="setting-block"><span class="setting-label">Player movement</span><div class="movement-choices">${[['independent','On timeline'],['approach','To receive'],['receive','After catch'],['release','On release']].map(([value,label])=>`<button class="${(p.trigger||'independent')===value?'chosen':''}" onclick="event.stopPropagation();setPathTrigger(${i},'${value}')">${label}</button>`).join('')}</div></div>`}${p.type!=='ball' ? `<div class="setting-block communication-block"><label class="communication-toggle" onclick="event.stopPropagation()"><span>Communication</span><input type="checkbox" aria-label="Enable communication for this action" ${p.communicationEnabled?'checked':''} onchange="event.stopPropagation();setActionCommunication(${i},this.checked)"></label>${p.communicationEnabled?`<div class="communication-fields"><label class="setting-label">Communication message</label><textarea rows="2" placeholder="e.g. MINE! BACK UP!" oninput="setActionMessage(${i},this.value)">${esc(p.communicationMessage||'')}</textarea><span class="setting-label">Show call</span><div class="communication-choices">${[['move','When action starts'],['receive','When ball arrives'],['ball','While ball travels']].map(([v,l])=>`<button class="${(p.communicationTrigger||'move')===v?'chosen':''}" onclick="event.stopPropagation();setActionCallTiming(${i},'${v}')">${l}</button>`).join('')}</div></div>`:''}</div>` : ''}<div class="setting-block"><span class="setting-label">How fast?</span><div class="duration-choices">${[[1,'Fast'],[2.2,'Normal'],[4,'Slow']].map(([seconds,label])=>`<button class="${Math.abs((p.duration||2.2)-seconds)<.01?'chosen':''}" onclick="event.stopPropagation();setPathTiming(${i},'duration',${seconds})">${label}</button>`).join('')}</div></div></div></div>`;
+ }).join('')+'</div>';
+}
+let selectedActionIndex=null;
+const expandedActions=new Set();
+function focusAction(i){selectedActionIndex=i;expandedActions.add(current.paths[i]?.id||i);renderCanvas()}
+function toggleActionDetails(i){const key=current.paths[i]?.id||i;if(expandedActions.has(key))expandedActions.delete(key);else expandedActions.add(key);selectedActionIndex=i;renderCanvas()}
+let timelineDraggedIndex=null;
+function setPathOrder(i,value){const target=Math.max(0,Math.min(current.paths.length-1,(parseInt(value,10)||1)-1));if(target===i)return;const [item]=current.paths.splice(i,1);current.paths.splice(target,0,item);selectedActionIndex=target;renderCanvas()}
+function timelineDragStart(e,i){timelineDraggedIndex=i;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(i));e.currentTarget.classList.add('dragging')}
+function timelineDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move'}
+function timelineDrop(e,i){e.preventDefault();const from=timelineDraggedIndex??Number(e.dataTransfer.getData('text/plain'));timelineDraggedIndex=null;if(Number.isInteger(from)&&from>=0&&from<current.paths.length)setPathOrder(from,i+1)}
+function timelineDragEnd(e){timelineDraggedIndex=null;e.currentTarget.classList.remove('dragging')}
+function setTimelineStart(i,v){if(current.paths[i]){current.paths[i].timelineStart=v;renderPathList()}}
+
+function movePath(i,delta){const j=i+delta;if(j<0||j>=current.paths.length)return;[current.paths[i],current.paths[j]]=[current.paths[j],current.paths[i]];selectedActionIndex=j;renderCanvas()}
+function setActionCommunication(i,v){const p=current.paths[i];if(!p)return;p.communicationEnabled=!!v;if(!p.communicationTrigger)p.communicationTrigger="move";expandedActions.add(p.id||i);renderPathList()}
+function setActionMessage(i,v){const p=current.paths[i];if(p)p.communicationMessage=v.slice(0,140)}
+function setActionCallTiming(i,v){const p=current.paths[i];if(p){p.communicationTrigger=v;renderPathList()}}
+function setPathTrigger(i,v){current.paths[i].trigger=v;renderPathList()}
+function setPathLink(i,v){current.paths[i].linkedPersonId=v||null;renderPathList()}
+function setPathTiming(i,k,v){current.paths[i][k]=Math.max(k==='duration'?.2:0,Math.min(20,Number(v)||0));renderPathList()}
+function deletePath(i){current.paths.splice(i,1);selectedActionIndex=null;renderCanvas()}
+function svgPoint(e){const pt=$('canvas').createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const mat=$('canvas').getScreenCTM();if(!mat)return [350,265];const p=pt.matrixTransform(mat.inverse());return [Math.max(0,Math.min(700,p.x)),Math.max(0,Math.min(530,p.y))]}
+function closest(pos){return [...current.items].reverse().find(p=>Math.hypot(p.x-pos[0],p.y-pos[1])<23)}
+$('canvas').addEventListener('pointerdown',e=>{if(playing)return;const pos=svgPoint(e);let hit=closest(pos);if(tool==='coachReturn'){const person=[...current.items].reverse().find(p=>['player','coach','coachBat','coachBall'].includes(p.type)&&Math.hypot(p.x-pos[0],p.y-pos[1])<28);if(person)hit=person;}if(tool==='select'){selected=hit?.id||null;if(hit){drag={id:hit.id};$('canvas').setPointerCapture(e.pointerId)}renderCanvas();return}if(tool==='coachReturn'){if(drawing){if(!hit||!['player','coach','coachBat','coachBall'].includes(hit.type)){setHint('Choose a player or coach as the destination.');return}const previousId=drawing.transfers.at(-1)?.toId||drawing.coachReturnId;if(hit.id===previousId){setHint('Choose a different player or coach for the next pass.');return}drawing.transfers.push({fromId:previousId,toId:hit.id,via:drawing.pendingTarget||null,viaId:drawing.pendingTargetId||null});if(drawing.pendingTarget)drawing.points.push(drawing.pendingTarget);drawing.pendingTarget=null;drawing.pendingTargetId=null;drawing.points.push([hit.x,hit.y]);setHint('Pass added to '+itemLabel(hit.id)+'. Click another person or Finish path.');renderCanvas()}return}if(tool==='move'){
+ if(hit && !drawing){selected=hit.id;setHint('Selected '+itemLabel(selected)+'. Click empty destinations to animate it.');renderCanvas();return}
+ if(hit && drawing){if(['cone','stumps','singleStump'].includes(hit.type)&&drawing.type!=='ball'){drawing.points.push([hit.x,hit.y]);setHint('Movement destination snapped to '+itemLabel(hit.id)+'. Finish path when ready.');renderCanvas();return}setHint('Click an empty position or a cone to add a destination.');return}
+ const chosen=current.items.find(x=>x.id===selected);
+ if(!chosen || !movingTypes.has(chosen.type)){setHint('First click a player, ball or coach to select it.');setTool('select');return}
+ if(!drawing){const previous=current.paths.filter(p=>p.itemId===chosen.id).at(-1);const start=previous?previous.points.at(-1):[chosen.x,chosen.y];drawing={itemId:chosen.id,type:chosen.type,points:[start,pos]};setHint('First destination added for '+itemLabel(chosen.id)+'. Add more or Finish path.')}
+ else {drawing.points.push(pos);setHint('Destination added. Finish path when ready.')}
+ renderCanvas();return
+ }const p={id:crypto.randomUUID(),type:tool,x:pos[0],y:pos[1]};if(['player','coach','coachBat','coachBall'].includes(tool)){const group=tool==='player'?['player']:['coach','coachBat','coachBall'];p.number=1+Math.max(0,...current.items.filter(x=>group.includes(x.type)).map(x=>Number(x.number)||0));}current.items.push(p);selected=p.id;setHint('Added '+tool+'. Click again to add another, or choose Move / select to drag.');renderCanvas()});
+$('canvas').addEventListener('dblclick',e=>{if(tool==='move'&&drawing){e.preventDefault();finishPath()}});$('canvas').addEventListener('pointermove',e=>{if(!drag)return;const p=current.items.find(x=>x.id===drag.id),pos=svgPoint(e);if(p){p.x=pos[0];p.y=pos[1];renderCanvas()}});$('canvas').addEventListener('pointerup',()=>drag=null);$('canvas').addEventListener('pointercancel',()=>drag=null);
+function itemLabel(id){const i=current.items.findIndex(p=>p.id===id);if(i<0)return 'Deleted item';const p=current.items[i];const names={player:'Player',ball:'Ball',coach:'Coach',coachBat:'Coach with bat',coachBall:'Coach with ball',stumps:'Wickets',singleStump:'Single stump',cone:'Cone',catchingRamp:'Catching ramp',bat:'Bat',hoop:'Hoop',target:'Target'};return (names[p.type]||p.type)+' #'+(p.number||current.items.filter((x,j)=>j<=i&&x.type===p.type).length)}
+function setSelectedRole(v){const p=current.items.find(x=>x.id===selected);if(p){p.role=v;renderCanvas()}}
+function setSelectedCall(v){const p=current.items.find(x=>x.id===selected);if(p)p.call=v.slice(0,36)}
+function setSelectedCallTrigger(v){const p=current.items.find(x=>x.id===selected);if(p)p.callTrigger=v}
+function updateSelectedBanner(){const p=current.items.find(x=>x.id===selected);const coachAction=$('coachBallAction');if(coachAction)coachAction.style.display=p&&['player','coach','coachBat','coachBall'].includes(p.type)?'block':'none';const top=$('canvasSelection');if(top){top.textContent=p?'Selected: '+itemLabel(p.id)+' · '+(tool==='move'?'Click destinations to animate':'Click Animate selected to draw movement'):'Nothing selected — click an item on the field';top.classList.toggle('active',!!p)}}
+function startCoachBallReturn(){
+ const coach=current.items.find(x=>x.id===selected);
+ if(!coach||!['player','coach','coachBat','coachBall'].includes(coach.type))return;
+ resetAnimation();
+ const ball={id:crypto.randomUUID(),type:'ball',x:coach.x-17,y:coach.y-12,linkedCoachId:coach.id};
+ current.items.push(ball);selected=ball.id;
+ drawing={itemId:ball.id,type:'ball',points:[[ball.x,ball.y]],transfers:[],duration:2.2,delay:0,coachReturnId:coach.id};
+ tool='coachReturn';$('modeLabel').textContent='Choose ball destination';
+ setHint('Click people to pass. You can click a stump, cone or ramp as a target. Finish path stops at the final destination.');renderCanvas();
+}
+function finishPath(){if(drawing){
+ if(drawing.coachReturnId){
+  const coach=current.items.find(x=>x.id===drawing.coachReturnId);
+  const ball=current.items.find(x=>x.id===drawing.itemId);
+  if(coach&&ball&&(drawing.transfers.length||drawing.pendingTarget)){
+   const transfers=[...drawing.transfers];
+   const last=transfers.at(-1)?.toId||coach.id;
+   if(drawing.pendingTarget){transfers.push({fromId:last,toId:drawing.pendingTargetId,via:null,targetOnly:true});}else if(last!==coach.id&&drawing.autoReturn)transfers.push({fromId:last,toId:coach.id});
+   transfers.forEach((pass,i)=>{
+    const from=current.items.find(x=>x.id===pass.fromId),to=current.items.find(x=>x.id===pass.toId);
+    if(!from||!to)return;
+    const fromPoint=i===0?[ball.x,ball.y]:[from.x,from.y];
+    const toPoint=to.id===coach.id?[coach.x-17,coach.y-12]:[to.x,to.y];
+    current.paths.push({itemId:ball.id,type:'ball',points:[fromPoint,...(pass.via?[pass.via]:[]),toPoint],sourceId:from.id,receiverId:pass.targetOnly?null:to.id,targetId:pass.targetOnly?to.id:(pass.viaId||null),deliveryType:from.type==='player'?'overarm':'ground',duration:1.6,delay:0,holdSeconds:to.id===coach.id?0:1});
+   });
+  }else if(ball){current.items=current.items.filter(x=>x.id!==ball.id)}
+ }else if(drawing.points.length>1){drawing.duration=2.2;drawing.delay=0;if(drawing.type==='ball')drawing.deliveryType=drawing.deliveryType||deliveryOptions(drawing)[0][0];if(drawing.type==='player'||coachTypes.has(drawing.type)){const pts=drawing.points;const lengths=pts.slice(1).map((pt,i)=>Math.hypot(pt[0]-pts[i][0],pt[1]-pts[i][1]));const total=lengths.reduce((a,b)=>a+b,0)||1;for(let j=0;j<pts.length-1;j++){current.paths.push({...drawing,id:crypto.randomUUID(),points:[pts[j],pts[j+1]],duration:Math.max(.2,2.2*lengths[j]/total),timelineStart:j===0?'after':'after',segment:j+1});}}else{current.paths.push({...drawing,id:crypto.randomUUID()})}}
+ drawing=null;setHint('Movement saved. To run after receiving, select the player, draw their next movement and set When to move to After receiving ball.');tool='select';document.querySelectorAll('.tool').forEach(b=>b.classList.remove('active'));$('selectTool').classList.add('active');$('modeLabel').textContent='Move / select';renderCanvas()}}
+function undoPoint(){if(drawing&&drawing.coachReturnId&&drawing.transfers?.length){const t=drawing.transfers.pop();drawing.points.pop();if(t.via)drawing.points.pop();renderCanvas()}else if(drawing&&drawing.points.length>1){drawing.points.pop();renderCanvas()}}
+function removeSelected(){if(!selected)return;current.items=current.items.filter(p=>p.id!==selected);current.paths=current.paths.filter(p=>p.itemId!==selected);selected=null;renderCanvas()}
+function togglePlay(){if(playing){resetAnimation();return}finishPath();if(!current.paths.length){alert('Draw a movement path first.');return}playing=true;animStart=performance.now();$('playButton').textContent='■ Stop';animFrame=requestAnimationFrame(animate)}
+function interpolate(points,t){if(points.length<2)return points[0];let lens=[],total=0;for(let i=1;i<points.length;i++){let d=Math.hypot(points[i][0]-points[i-1][0],points[i][1]-points[i-1][1]);lens.push(d);total+=d}let remaining=Math.max(0,Math.min(1,t))*total;for(let i=0;i<lens.length;i++){if(remaining<=lens[i]||i===lens.length-1){let f=lens[i]?remaining/lens[i]:1;return [points[i][0]+(points[i+1][0]-points[i][0])*f,points[i][1]+(points[i+1][1]-points[i][1])*f]}remaining-=lens[i]}return points[points.length-1]}
+// Build a dependency-based timeline. Ball transfers wait for the previous ball
+// movement; a receiving player may move before or after the ball arrives.
+// Pause a travelling ball at a player before continuing its journey.
+function ballPause(p){
+ if(p.type!=='ball'||!p.points||p.points.length<2)return null;
+ let best=null;
+ const players=current.items.filter(i=>['player','coach','coachBat','coachBall'].includes(i.type)&&i.id!==p.sourceId);
+ let travelled=0,total=0;const lengths=[];
+ for(let k=1;k<p.points.length;k++){const a=p.points[k-1],b=p.points[k],len=Math.hypot(b[0]-a[0],b[1]-a[1]);lengths.push(len);total+=len}
+ if(total<1)return null;
+ for(let k=1;k<p.points.length;k++){
+  const a=p.points[k-1],b=p.points[k],len=lengths[k-1];
+  for(const player of players){const dx=b[0]-a[0],dy=b[1]-a[1];const u=Math.max(0,Math.min(1,((player.x-a[0])*dx+(player.y-a[1])*dy)/(len*len||1)));
+   const px=a[0]+u*dx,py=a[1]+u*dy,dist=Math.hypot(player.x-px,player.y-py);
+   const fraction=(travelled+u*len)/total;
+   if(dist<=27&&fraction>.08&&fraction<.94&&(!best||dist<best.dist))best={fraction,dist};
+  }
+  travelled+=len;
+ }
+ return best?{fraction:best.fraction,seconds:1.0}:null;
+}
+function ballProgress(p,elapsed,travelDuration){
+ if(p.holdSeconds)return Math.max(0,Math.min(1,elapsed/travelDuration));const pause=ballPause(p);if(!pause)return Math.max(0,Math.min(1,elapsed/travelDuration));
+ const arrival=pause.fraction*travelDuration;
+ if(elapsed<=arrival)return Math.max(0,elapsed/travelDuration);
+ if(elapsed<=arrival+pause.seconds)return pause.fraction;
+ return Math.min(1,(elapsed-pause.seconds)/travelDuration);
+}
+function smartSchedule(){
+ const schedule=[],ballEvents=[],releaseEvents=[];
+ const paths=current.paths.filter(p=>current.items.some(i=>i.id===p.itemId));
+ const lastEnd=new Map();let cursor=0;
+ for(const p of paths){
+  const dur=Math.max(.2,Number(p.duration)||2.2)+(p.holdSeconds||0);
+  let start=(p.timelineStart==='with'?Math.max(0,cursor-(schedule.at(-1)?.dur||0)):cursor)+(Number(p.delay)||0);
+  start=Math.max(start,lastEnd.get(p.itemId)||0);
+
+  const a={p,start,dur};schedule.push(a);lastEnd.set(p.itemId,start+dur);
+  if(p.type==='ball'){
+   releaseEvents.push({sourceId:p.sourceId,start,ballId:p.itemId,pass:p});
+   if(p.receiverId)ballEvents.push({receiverId:p.receiverId,end:start+dur,ballId:p.itemId,sourceId:p.sourceId});
+  }
+  cursor=Math.max(cursor,start+dur);
+ }
+ return {schedule,ballEvents,releaseEvents};
+}
+
+// Resolve a person's position at a specific moment in the timeline, including
+// consecutive runs and movements that overlap a throw.
+function actorPositionAt(id,when,schedule){
+ const item=current.items.find(i=>i.id===id);if(!item)return null;
+ let point=[item.x,item.y];
+ for(const action of schedule){
+  const p=action.p;if(p.itemId!==id||p.type==='ball'||!p.points?.length)continue;
+  if(when<action.start)continue;
+  const progress=Math.min(1,Math.max(0,(when-action.start)/Math.max(.2,action.dur)));
+  point=interpolate(p.points,progress);
+ }
+ return point;
+}
+function playbackBallPath(p,schedule,action){
+ if(p.type!=='ball')return p;
+ const points=p.points.map(q=>[...q]);
+ const start=action?.start??0;
+ const end=start+Math.max(.2,Number(p.duration)||2.2);
+ // The ball leaves the actual location of its thrower and arrives at the
+ // receiver's actual location, even when that receiver has changed cones.
+ const from=actorPositionAt(p.sourceId,start,schedule);
+ const to=actorPositionAt(p.receiverId,end,schedule);
+ if(from&&points.length>1)points[0]=from;
+ if(to&&points.length>1)points[points.length-1]=to;
+ return {...p,points};
+}
+function animate(now){
+ if(!playing)return;
+ const speed=Number($('speed').value),t=(now-animStart)*speed/1000,mode=$('playbackMode').value;
+ let schedule=[],ballEvents=[];
+ if(mode==='smart')({schedule,ballEvents}=smartSchedule());
+ else {let cursor=0;for(const p of current.paths){let start=(mode==='sequence'?cursor:0)+(Number(p.delay)||0),dur=(Number(p.duration)||2.2)+(p.holdSeconds||ballPause(p)?.seconds||0);schedule.push({p,start,dur});if(mode==='sequence')cursor=start+dur}}
+ const total=Math.max(1,...schedule.map(a=>a.start+a.dur))+.7;
+ if(t>=total&&!$('loop').checked){playing=false;$('playButton').textContent='▶ Play';renderCanvas();return}
+ const time=$('loop').checked?t%total:Math.min(t,total);
+ let svg=background();for(const action of schedule){const p=playbackBallPath(action.p,schedule,action);svg+=`<polyline points="${p.points.map(a=>a.join(',')).join(' ')}" fill="none" stroke="${p.type==='ball'?'#ffde79':'#9ad4ff'}" stroke-width="3" stroke-dasharray="8 6" opacity=".6"/>`;}
+ for(const item of current.items){let x=item.x,y=item.y;for(const a of schedule){if(a.p.itemId!==item.id)continue;const progress=(time-a.start)/a.dur;if(progress>=0){[x,y]=a.p.type==='ball'?deliveryPoint(playbackBallPath(a.p,schedule,a),ballProgress(a.p,time-a.start,Math.max(.2,Number(a.p.duration)||2.2))):interpolate(a.p.points,Math.min(1,progress))}}svg+=shape(item,x,y);const calls=schedule.filter(a=>a.p.itemId===item.id&&a.p.communicationEnabled&&a.p.communicationMessage);for(const a of calls){const trigger=a.p.communicationTrigger||'move';let start=a.start;if(trigger==='receive'){const arrival=ballEvents.find(e=>e.receiverId===item.id&&e.end>=a.start-.5);if(arrival)start=arrival.end;}else if(trigger==='ball'){const b=schedule.find(b=>b.p.type==='ball'&&b.start>=a.start-.5);if(b)start=b.start;}if(time>=start&&time<start+1.4){const label=esc(a.p.communicationMessage).slice(0,140);const w=Math.max(60,Math.min(225,label.length*7+22));svg+=`<g transform="translate(${Math.max(w/2+5,Math.min(700-w/2-5,x))} ${Math.max(36,y-38)})"><rect x="${-w/2}" y="-29" width="${w}" height="30" rx="10" fill="#fff" stroke="#18344a" stroke-width="1.5"/><path d="M-5 0L0 9L5 0" fill="#fff"/><text x="0" y="-10" text-anchor="middle" font-family="system-ui" font-weight="700" font-size="13" fill="#152d3c">${label}</text></g>`;}}}
+ svg+=`<rect x="12" y="492" width="185" height="24" rx="12" fill="#081e18" opacity=".8"/><text x="24" y="508" fill="white" font-size="13" font-family="system-ui">${time.toFixed(1)}s / ${total.toFixed(1)}s</text>`;
+ $('canvas').innerHTML=svg;animFrame=requestAnimationFrame(animate)
+}
+function resetAnimation(){playing=false;cancelAnimationFrame(animFrame);if($('playButton'))$('playButton').textContent='▶ Play';if(current)renderCanvas()}
+renderLibrary();
+
+function setHint(msg){const h=$('editorHint');if(h)h.textContent=msg}
+function undoLast(){if(playing)resetAnimation();if(drawing){undoPoint();return}if(current.paths.length){current.paths.pop();setHint('Removed the last movement.')}else if(current.items.length){const last=current.items.pop();selected=null;setHint('Removed '+last.type+'.')}else{setHint('Nothing to undo.')}renderCanvas()}
+function clearCanvas(){if(!confirm('Clear all players, equipment and movements from this activity?'))return;resetAnimation();current.items=[];current.paths=[];selected=null;drawing=null;renderCanvas();setHint('Field cleared. Start by adding equipment.')}
+function loadExample(){if(current.items.length||current.paths.length){if(!confirm('Replace the current field with a sample fielding activity?'))return}resetAnimation();const mk=(type,x,y)=>({id:crypto.randomUUID(),type,x,y});const batter=mk('player',345,420),fielder=mk('player',190,215),keeper=mk('coach',345,85),ball=mk('ball',345,385),cone=mk('cone',140,195);current.items=[batter,fielder,keeper,ball,cone];current.paths=[{itemId:ball.id,type:'ball',points:[[345,385],[280,300],[225,248]],duration:1.6,delay:0,deliveryType:'ground'},{itemId:fielder.id,type:'player',points:[[190,215],[225,248]],duration:1,delay:0,trigger:'independent'},{itemId:ball.id,type:'ball',points:[[225,248],[345,85]],duration:1.6,delay:0,deliveryType:'low'}];$('playbackMode').value='smart';renderCanvas();setTool('select');setHint('Example ready: press Play to watch ball, fielder, then throw. Smart mode automatically handles the return after the first ball arrives.');}
+document.addEventListener('keydown',e=>{if($('editor').classList.contains('hidden')||['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName))return;if(e.key==='Escape'){if(drawing)finishPath();else setTool('select')}if(e.key==='Delete'||e.key==='Backspace')removeSelected();if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undoLast()}});
+</script></body></html>
