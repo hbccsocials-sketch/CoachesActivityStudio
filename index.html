@@ -644,7 +644,8 @@ body.admin-route .admin-v55-content{min-width:0;padding:28px clamp(18px,2.2vw,38
  body.admin-route .admin-v55-content{padding:18px 14px 40px}
 }
 
-/* V75: visible, persistent signed-out admin entry point */
+/* V76: admin login is never visible on public routes */
+#adminSignedOut{display:none}
 body.admin-route #adminSignedOut{display:none}
 body.admin-route.admin-signed-out #adminSignedOut{display:block}
 body.admin-route.admin-signed-out main.shell,body.admin-route.admin-signed-out nav.app-nav{display:none!important}
@@ -715,7 +716,7 @@ async function handleCloudSession(session){
    $('libraryModeTitle').textContent='☁ Admin cloud library';$('workspaceLabel').textContent='Cricket · Admin workspace';
    $('libraryHeading').textContent='My Activity Library';$('libraryDescription').textContent='Manage your cricket activities and publish selected drills to the public library.';
    cloudStatus('Loading private admin library…');await loadCloudActivities();
-   await refreshAdminPublishing();cloudStatus('Admin signed in · activity drafts available');$('cloudImportButton').style.display='none';showAdmin();renderAdminDraftPicker();renderIconManager();renderTilePicker();renderIconManager();renderTilePicker();
+   await refreshAdminPublishing();cloudStatus('Admin signed in · activity drafts available');$('cloudImportButton').style.display='none';activeAdminPage='overview';showAdmin();adminNavigate('overview');renderAdminDraftPicker();renderIconManager();renderTilePicker();renderIconManager();renderTilePicker();
   }catch(e){cloudUser=null;adminAuthorized=false;document.body.classList.add('admin-signed-out');activities=[];renderLibrary();cloudStatus('Admin access error: '+e.message);$('cloudAuthButton').textContent='Admin sign out';$('cloudAuthButton').onclick=coachSignOut;}
  }else{
   document.body.classList.add('admin-signed-out');
