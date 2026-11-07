@@ -29,8 +29,10 @@ async function v95Init(){
   const renderer=new THREE.WebGLRenderer({canvas:v95Layer,alpha:true,antialias:true});
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;
   const scene=new THREE.Scene();const cam=new THREE.PerspectiveCamera();
-  scene.add(new THREE.HemisphereLight(0xffffff,0x718e74,2.2));
-  const light=new THREE.DirectionalLight(0xffffff,2);light.position.set(-8,20,12);scene.add(light);
+  // V96: soft, neutral studio lighting for custom GLBs, matching the Admin model preview.
+  scene.add(new THREE.HemisphereLight(0xffffff,0xffffff,3));
+  scene.add(new THREE.AmbientLight(0xffffff,1.25));
+  const light=new THREE.DirectionalLight(0xffffff,2.4);light.position.set(-8,20,12);scene.add(light);
   v95Engine={THREE,GLTFLoader,renderer,scene,cam};return v95Engine;
  }catch(e){console.warn('V95 custom model renderer unavailable; built-in fallback retained',e);v95Unavailable=true;return null}
 }
@@ -43,6 +45,22 @@ function v95SyncModels(){
    new engine.GLTFLoader().load(url,gltf=>{
     if(v95Urls[key]!==url)return;
     const root=gltf.scene;
+    // V96: preserve the GLB's authored base colour under the outdoor viewer's lighting.
+    // A small matching emissive contribution avoids the dark/muddy appearance
+    // of small coral equipment without flattening its shape or texture.
+    root.traverse(node=>{
+      if(!node.isMesh||!node.material)return;
+      const brighten=mat=>{
+        const m=mat.clone();
+        if(m.color&&m.emissive){
+          m.emissive.copy(m.color);
+          m.emissiveIntensity=0.55;
+          if(m.map&&'emissiveMap' in m)m.emissiveMap=m.map;
+        }
+        return m;
+      };
+      node.material=Array.isArray(node.material)?node.material.map(brighten):brighten(node.material);
+    });
     const box=new engine.THREE.Box3().setFromObject(root);
     if(box.isEmpty()){delete v95Pending[key];return;}
     const size=box.getSize(new engine.THREE.Vector3());
