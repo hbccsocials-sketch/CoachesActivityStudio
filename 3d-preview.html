@@ -122,7 +122,7 @@ function v95Draw(){
   }
   v99Previous.set(id,{x,z,time:t});
  };
- for(let i=0;i<cones.length;i++){const [x,z]=cones[i];add('cone:'+i,'cone',x,z,.45)}
+ for(let i=0;i<cones.length;i++){const [x,z]=cones[i];add('cone:'+i,'cone',x,z,1.05)}
  stumps.forEach((item,i)=>add('stump:'+i,item.key||'stumps',item.x,item.z,.85));
  players.forEach((p,i)=>{const pos=playerPosition(i,t);add('player:'+i,'player',pos.x,pos.z,1.8)});
  coaches.forEach((c,i)=>add('coach:'+i,c.key||'coach',c.x,c.z,1.8));
@@ -187,12 +187,17 @@ function drawPerson(P,pos,id,isCoach,assetKey){
  const s=conf.scale, key=(isCoach?'coach:':'player:')+id;
  const prev=v100Motion.get(key),dx=prev?pos.x-prev.x:0,dz=prev?pos.z-prev.z:0;
  const dt=prev?Math.abs(t-prev.t):0, distance=Math.hypot(dx,dz);
- const walking=dt>.001&&dt<.5&&distance>.009;
+ // V102: drive the gait from elapsed animation time, not tiny per-frame distances.
+ // A single-frame displacement is normally only a few centimetres in field units;
+ // the old .009 threshold and distance*2.8 phase increment often looked stationary.
+ const speed=dt>0.0001&&dt<0.45?distance/dt:0;
+ const walking=speed>0.035 && speed<100;
  let state=v100Gait.get(key)||{phase:0,amount:0};
- state.amount+=(Number(walking)-state.amount)*.25;
- if(walking)state.phase+=Math.min(distance*2.8,.55);
+ const blend=1-Math.exp(-Math.min(dt||.016,.12)*13);
+ state.amount+=(Number(walking)-state.amount)*blend;
+ if(walking)state.phase+=Math.min(dt,.12)*Math.max(5.5,Math.min(12,speed*2.5));
  v100Gait.set(key,state);v100Motion.set(key,{x:pos.x,z:pos.z,t});
- const gait=Math.sin(state.phase)*state.amount, armGait=Math.sin(state.phase+Math.PI)*state.amount;
+ const gait=Math.sin(state.phase)*state.amount, armGait=-gait;
  const at=(x,y,z)=>P(V(pos.x+x*s,y*s,pos.z+z*s));
  const shadow=at(0,.025,0),head=at(0,1.72,0),neck=at(0,1.44,0),hips=at(0,.84,0);
  if(!head.visible)return;
@@ -210,14 +215,15 @@ function drawPerson(P,pos,id,isCoach,assetKey){
  line([at(-.21,1.37,0),lElbow],shirt,unit*.7);line([lElbow,lHand],skin,unit*.43);
  line([at(.21,1.37,0),rElbow],shirt,unit*.7);line([rElbow,rHand],skin,unit*.43);
  circle(head,unit*.94,skin,'#a77960');
- // Cap with visible brim, designed to match the simple cartoony player icon.
- line([at(-.19,1.87,0),at(.19,1.87,0)],shirt,unit*.6);
- line([at(0,1.86,0),at(.26,1.82,-.08)],shirt,unit*.28);
+ // V101: rounded baseball cap; avoid the detached triangular-looking brim.
+ const capTop=at(0,1.87,0),capFront=at(0,1.79,-.19),capBrim=at(0,1.78,-.31);
+ circle(capTop,unit*.77,shirt);
+ line([capFront,capBrim],shirt,Math.max(2,unit*.36));
  if(head.s>5){const label=at(0,1.12,0);ctx.fillStyle='#002941';ctx.textAlign='center';ctx.font=`bold ${clamp(head.s*.34,11,22)}px system-ui`;ctx.fillText(isCoach?'C'+id:String(id),label.x,label.y+3)}
 }
 const v100Motion=new Map(),v100Gait=new Map();
 function drawPersonNumber(P,pos,id,isCoach){const anchor=P(V(pos.x,1.05*v93Asset(isCoach?'coach':'player').scale,pos.z));if(!anchor.visible)return;ctx.textAlign='center';ctx.font='bold 14px system-ui';ctx.lineWidth=3;ctx.strokeStyle='#ffffff';ctx.fillStyle='#15324a';ctx.strokeText((isCoach?'C':'')+id,anchor.x,anchor.y);ctx.fillText((isCoach?'C':'')+id,anchor.x,anchor.y)}
-function drawCone(P,x,z){if(v95Ready('cone'))return;const conf=v93Asset('cone'),size=conf.scale,flat=conf.model==='Flat marker';let base=P(V(x,0,z)),peak=P(V(x,(flat?.12:.38)*size,z)),l=P(V(x-.23*size,.01,z)),r=P(V(x+.23*size,.01,z));poly([l,peak,r],'#ff8a3c','#ffefc6',1.2);line([l,r],'#fff0d5',1.5)}
+function drawCone(P,x,z){if(v95Ready('cone')){const base=P(V(x,.012,z));circle(base,clamp(base.s*.095*v93Asset('cone').scale,3,12),'#fd6e6e');return;}const conf=v93Asset('cone'),size=conf.scale,flat=conf.model==='Flat marker';let base=P(V(x,0,z)),peak=P(V(x,(flat?.12:.38)*size,z)),l=P(V(x-.23*size,.01,z)),r=P(V(x+.23*size,.01,z));poly([l,peak,r],'#ff8a3c','#ffefc6',1.2);line([l,r],'#fff0d5',1.5)}
 function drawStumps(P,x,z,key='stumps'){if(v95Ready(key))return;const size=v93Asset('stumps').scale;for(let dx of [-.15,0,.15])line([P(V(x+dx*size,0,z)),P(V(x+dx*size,.75*size,z))],'#f9f5df',clamp(P(V(x,0,z)).s*.045,1,5));line([P(V(x-.2*size,.76*size,z)),P(V(x+.2*size,.76*size,z))],'#f9f5df',2)}
 function draw(){if(!W||!H)return;const P=projector();drawGround(P);let objs=[];for(const [x,z] of cones)objs.push({depth:P(V(x,0,z)).depth,draw:()=>drawCone(P,x,z)});for(const s of stumps)objs.push({depth:P(V(s.x,0,s.z)).depth,draw:()=>drawStumps(P,s.x,s.z,s.key||'stumps')});players.forEach((_,i)=>{const p=playerPosition(i,t);objs.push({depth:P(p).depth,draw:()=>{if(!v95Ready('player'))drawPerson(P,p,players[i].id||i+1,false,'player');else drawPersonNumber(P,p,players[i].id||i+1,false)}})});coaches.forEach((c,i)=>{if(mode==='coach'&&coachIdx===i)return;const p=V(c.x,0,c.z);objs.push({depth:P(p).depth,draw:()=>{if(!v95Ready(c.key||'coach'))drawPerson(P,p,i+1,true,c.key||'coach');else drawPersonNumber(P,p,i+1,true)}})});objs.sort((a,b)=>b.depth-a.depth);objs.forEach(o=>o.draw());let b=ballPosition(t);if(b&&!v95Ready('ball')){circle(P(b),clamp(P(b).s*.12*v93Asset('ball').scale,2,24),'#fff05e','#7d6d14');circle(P(V(b.x,.02,b.z)),clamp(P(b).s*.12,2,9),'#163e2755');}if(mode!=='coach'&&!liveData){let pts=[];for(let u=0;u<=20;u++){let tt=clamp(t-.7+u*.035,0,16);pts.push(P(ballPosition(tt)))}for(let i=1;i<pts.length;i++)line([pts[i-1],pts[i]],'#ffe364bb',2)}v95Draw();requestAnimationFrame(()=>{})}
 const cameraPresets={overview:{az:.7,elev:.43,mult:.77},side:{az:Math.PI/2,elev:.35,mult:.90},low:{az:.7,elev:.25,mult:.84},overhead:{az:.7,elev:1.17,mult:1.30}};
