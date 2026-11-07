@@ -893,16 +893,58 @@ function renderEquipmentTools(){
  for(const [id,label] of base){const c=iconRecord(id);if(c&&c.enabled===false)continue;const parent=$(fixedTypes.has(id)?'fixedTools':'movingTools');const caption=c?.label||label;const icon=c?.image_data?`<img src="${esc(c.image_data)}" style="width:23px;height:23px;object-fit:contain;vertical-align:middle;margin-right:6px" alt="">`:'';parent.insertAdjacentHTML('beforeend',`<button class="tool" id="tool-${id}" onclick="setTool('${id}')">${icon}${esc(caption)}</button>`)}
 }
 async function loadStudioIcons(){if(!cloudClient)return;const {data,error}=await cloudClient.from('studio_icons').select('icon_key,label,image_data,enabled').order('label');if(error){if(ADMIN_ROUTE)console.warn('Icon catalogue unavailable:',error.message);return}studioIcons=data||[];for(const c of studioIcons)if(c.icon_key.startsWith('custom_'))fixedTypes.add(c.icon_key);renderEquipmentTools();if(ADMIN_ROUTE&&adminAuthorized)renderIconManager()}
-function renderIconManager(){const fixedEl=$('fixedIconManagerList'),movingEl=$('movingIconManagerList');if(!fixedEl||!movingEl||!adminAuthorized)return;const names=[...Object.keys(defaultIconNames),...studioIcons.filter(c=>c.icon_key.startsWith('custom_')).map(c=>c.icon_key)];const iconRow=k=>{const c=iconRecord(k),label=c?.label||defaultIconNames[k]||k;return `<div class="surface-entry" style="flex-wrap:wrap"><div style="width:46px;height:46px;display:grid;place-items:center;background:#edf2f7;border-radius:8px">${c?.image_data?`<img src="${esc(c.image_data)}" style="width:42px;height:42px;object-fit:contain" alt="">`:'◉'}</div><div style="flex:1;min-width:160px"><strong>${esc(label)}</strong><div class="muted" style="font-size:11px">${esc(k)}</div></div><input id="iconName_${k}" value="${esc(label)}" aria-label="Rename ${esc(label)}" style="max-width:170px"><input type="file" id="iconFile_${k}" accept="image/png,image/jpeg,image/webp" aria-label="Replace image for ${esc(label)}" style="max-width:220px"><label style="white-space:nowrap"><input type="checkbox" id="iconEnabled_${k}" ${c?.enabled===false?'':'checked'}> Show</label><button onclick="saveStudioIcon('${k}')">Save</button>${k.startsWith('custom_')?`<button onclick="removeStudioIcon('${k}')">Remove</button>`:''}${v92AssetRow(k)}</div>`};fixedEl.innerHTML=names.filter(k=>fixedTypes.has(k)).map(iconRow).join('');movingEl.innerHTML=names.filter(k=>movingTypes.has(k)).map(iconRow).join('')}
-// V92: 3D asset configuration draft. Stored only in this browser until cloud asset schema is introduced.
-const V92_ASSET_KEY='cas_v92_3d_asset_drafts';
-const V92_SURFACE_KEY='cas_v92_3d_surface_drafts';
+function renderIconManager(){v93Kickoff();const fixedEl=$('fixedIconManagerList'),movingEl=$('movingIconManagerList');if(!fixedEl||!movingEl||!adminAuthorized)return;const names=[...Object.keys(defaultIconNames),...studioIcons.filter(c=>c.icon_key.startsWith('custom_')).map(c=>c.icon_key)];const iconRow=k=>{const c=iconRecord(k),label=c?.label||defaultIconNames[k]||k;return `<div class="surface-entry" style="flex-wrap:wrap"><div style="width:46px;height:46px;display:grid;place-items:center;background:#edf2f7;border-radius:8px">${c?.image_data?`<img src="${esc(c.image_data)}" style="width:42px;height:42px;object-fit:contain" alt="">`:'◉'}</div><div style="flex:1;min-width:160px"><strong>${esc(label)}</strong><div class="muted" style="font-size:11px">${esc(k)}</div></div><input id="iconName_${k}" value="${esc(label)}" aria-label="Rename ${esc(label)}" style="max-width:170px"><input type="file" id="iconFile_${k}" accept="image/png,image/jpeg,image/webp" aria-label="Replace image for ${esc(label)}" style="max-width:220px"><label style="white-space:nowrap"><input type="checkbox" id="iconEnabled_${k}" ${c?.enabled===false?'':'checked'}> Show</label><button onclick="saveStudioIcon('${k}')">Save</button>${k.startsWith('custom_')?`<button onclick="removeStudioIcon('${k}')">Remove</button>`:''}${v92AssetRow(k)}</div>`};fixedEl.innerHTML=names.filter(k=>fixedTypes.has(k)).map(iconRow).join('');movingEl.innerHTML=names.filter(k=>movingTypes.has(k)).map(iconRow).join('')}
+// V93: cloud-backed 3D configuration. Falls back to V92 browser drafts if the migration has not run.
+const V92_ASSET_KEY='cas_v92_3d_asset_drafts', V92_SURFACE_KEY='cas_v92_3d_surface_drafts';
 const v92ModelOptions={stumps:['Wickets','Single stump','Training marker'],singleStump:['Single stump','Wickets','Training marker'],cone:['Training cone','Flat marker','Training marker'],catchingRamp:['Catching ramp','Training cone'],player:['Player','Coach'],coach:['Coach','Player'],coachBat:['Coach with bat','Coach'],coachBall:['Coach with ball','Coach'],ball:['Cricket ball','Training ball']};
 function v92Read(key){try{return JSON.parse(localStorage.getItem(key)||'{}')||{}}catch{return {}}}
 function v92ModelsFor(key){return v92ModelOptions[key]||['Training marker','Training cone','Wickets']}
-function v92AssetRow(key){const config=v92Read(V92_ASSET_KEY)[key]||{},opts=v92ModelsFor(key);return `<div class="v92-asset-config"><div class="v92-asset-title">3D representation <span class="v92-draft-tag">Browser draft</span></div><div class="v92-asset-fields"><label>Built-in model<select id="v92-model-${key}">${opts.map(o=>`<option value="${esc(o)}" ${config.model===o?'selected':''}>${esc(o)}</option>`).join('')}</select></label><label>Model scale<input id="v92-scale-${key}" type="number" min="0.25" max="3" step="0.05" value="${Number.isFinite(Number(config.scale))&&Number(config.scale)>0?Number(config.scale):1}"></label><button type="button" onclick="v92SaveAsset('${key}')">Save 3D settings</button></div></div>`}
-function v92SaveAsset(key){if(!adminAuthorized)return;const model=document.getElementById('v92-model-'+key)?.value,scale=Number(document.getElementById('v92-scale-'+key)?.value);if(!model||!v92ModelsFor(key).includes(model)||!Number.isFinite(scale)||scale<.25||scale>3){alert('Choose a built-in model and a scale between 0.25 and 3.');return}try{const all=v92Read(V92_ASSET_KEY);all[key]={model,scale};localStorage.setItem(V92_ASSET_KEY,JSON.stringify(all));const el=document.getElementById('v92-asset-status');if(el)el.textContent='3D settings saved in this browser only. They do not yet change the public 3D renderer.'}catch(e){alert('Unable to save browser draft: '+e.message)}}
-function v92RenderSurfaceSettings(){const host=document.getElementById('v92-surface-config');if(!host)return;const config=v92Read(V92_SURFACE_KEY);const standard=['Small fielding area','Large fielding area','Court'];const all=[...standard.map(name=>({id:'standard:'+name,name})),...surfaces.map(x=>({id:'custom:'+x.id,name:x.name}))];host.innerHTML=`<h2>3D environment settings <span class="v92-draft-tag">Browser draft</span></h2><p class="muted">Choose a built-in 3D environment for each playing surface. These draft settings are not yet applied to the viewer or shared between devices.</p>${all.map(x=>{const cfg=config[x.id]||{};return `<div class="v92-surface-row"><strong>${esc(x.name)}</strong><label>Ground<select data-v92-ground="${esc(x.id)}"><option value="grass" ${cfg.ground==='grass'?'selected':''}>Grass training area</option><option value="court" ${cfg.ground==='court'?'selected':''}>Hard court</option><option value="neutral" ${cfg.ground==='neutral'?'selected':''}>Neutral surface</option></select></label><label><input type="checkbox" data-v92-lines="${esc(x.id)}" ${cfg.lines===false?'':'checked'}> Show boundary lines</label><button type="button" data-v92-save="${esc(x.id)}">Save</button></div>`}).join('')}<p id="v92-surface-status" class="muted" role="status"></p>`;host.querySelectorAll('[data-v92-save]').forEach(btn=>btn.addEventListener('click',()=>{if(!adminAuthorized)return;const id=btn.dataset.v92Save;const ground=[...host.querySelectorAll('[data-v92-ground]')].find(el=>el.dataset.v92Ground===id)?.value;const lines=[...host.querySelectorAll('[data-v92-lines]')].find(el=>el.dataset.v92Lines===id)?.checked;if(!ground)return;try{const saved=v92Read(V92_SURFACE_KEY);saved[id]={ground,lines};localStorage.setItem(V92_SURFACE_KEY,JSON.stringify(saved));document.getElementById('v92-surface-status').textContent='3D environment draft saved in this browser only.'}catch(e){alert(e.message)}}))}
+let v93Config={assets:v92Read(V92_ASSET_KEY),surfaces:v92Read(V92_SURFACE_KEY)},v93Loaded=false,v93Loading=null,v93CloudReady=false;
+async function v93Load(){
+ if(v93Loaded||v93Loading||!cloudClient)return v93Loading;
+ v93Loading=(async()=>{
+  try{const {data,error}=await cloudClient.from('studio_3d_settings').select('setting_key,settings');if(error)throw error;
+   v93CloudReady=true;
+   // The cloud is authoritative once the table exists; local drafts are not silently uploaded.
+   v93Config={assets:{},surfaces:{}};
+   for(const row of data||[]){if(row.setting_key.startsWith('asset:'))v93Config.assets[row.setting_key.slice(6)]=row.settings;
+    if(row.setting_key.startsWith('surface:'))v93Config.surfaces[row.setting_key.slice(8)]=row.settings;}
+   v93Loaded=true;
+   window.dispatchEvent(new Event('cas-v93-config-ready'));
+   if(ADMIN_ROUTE&&adminAuthorized){renderIconManager();v92RenderSurfaceSettings()}
+  }catch(e){console.warn('3D cloud configuration unavailable; browser drafts remain available:',e.message);v93Loaded=true;}
+  finally{v93Loading=null}
+ })();return v93Loading;
+}
+function v93Kickoff(){if(!v93Loaded&&!v93Loading&&cloudClient)v93Load()}
+async function v93Persist(kind,key,value){
+ if(!adminAuthorized||!cloudUser)throw Error('Admin sign-in required');
+ if(!v93Loaded)await v93Load();
+ if(!v93CloudReady)throw Error('3D settings table is not available. Run the included V93 Supabase SQL migration before saving.');
+ const {error}=await cloudClient.from('studio_3d_settings').upsert({setting_key:kind+':'+key,settings:value},{onConflict:'setting_key'});
+ if(error)throw error;
+ v93Config[kind==='asset'?'assets':'surfaces'][key]=value;
+}
+function v92AssetRow(key){const config=v93Config.assets[key]||{},opts=v92ModelsFor(key);return `<div class="v92-asset-config"><div class="v92-asset-title">3D representation <span class="v92-draft-tag">${v93CloudReady?'Cloud settings':'Setup required'}</span></div><div class="v92-asset-fields"><label>Built-in model<select id="v92-model-${key}">${opts.map(o=>`<option value="${esc(o)}" ${config.model===o?'selected':''}>${esc(o)}</option>`).join('')}</select></label><label>Model scale<input id="v92-scale-${key}" type="number" min="0.25" max="3" step="0.05" value="${Number.isFinite(Number(config.scale))&&Number(config.scale)>0?Number(config.scale):1}"></label><button type="button" onclick="v92SaveAsset('${key}')">Save 3D settings</button></div></div>`}
+async function v92SaveAsset(key){
+ const model=document.getElementById('v92-model-'+key)?.value,scale=Number(document.getElementById('v92-scale-'+key)?.value);
+ if(!model||!v92ModelsFor(key).includes(model)||!Number.isFinite(scale)||scale<.25||scale>3){alert('Choose a built-in model and a scale between 0.25 and 3.');return}
+ try{await v93Persist('asset',key,{model,scale});const el=document.getElementById('v92-asset-status');if(el)el.textContent='3D settings saved to Supabase and applied to the viewer.'}
+ catch(e){const el=document.getElementById('v92-asset-status');if(el)el.textContent=e.message;else alert(e.message)}
+}
+function v92RenderSurfaceSettings(){
+ v93Kickoff();const host=document.getElementById('v92-surface-config');if(!host)return;
+ const config=v93Config.surfaces;const standard=['Small fielding area','Large fielding area','Court'];
+ const all=[...standard.map(name=>({id:'standard:'+name,name})),...surfaces.map(x=>({id:'custom:'+x.id,name:x.name}))];
+ host.innerHTML=`<h2>3D environment settings <span class="v92-draft-tag">${v93CloudReady?'Cloud settings':'Setup required'}</span></h2><p class="muted">Choose a 3D environment for each playing surface. Saved settings apply to Admin Preview and published drills.</p>${all.map(x=>{const cfg=config[x.id]||{};return `<div class="v92-surface-row"><strong>${esc(x.name)}</strong><label>Ground<select data-v92-ground="${esc(x.id)}"><option value="grass" ${cfg.ground==='grass'?'selected':''}>Grass training area</option><option value="court" ${cfg.ground==='court'?'selected':''}>Hard court</option><option value="neutral" ${cfg.ground==='neutral'?'selected':''}>Neutral surface</option></select></label><label><input type="checkbox" data-v92-lines="${esc(x.id)}" ${cfg.lines===false?'':'checked'}> Show boundary lines</label><button type="button" data-v92-save="${esc(x.id)}">Save</button></div>`}).join('')}<p id="v92-surface-status" class="muted" role="status"></p>`;
+ host.querySelectorAll('[data-v92-save]').forEach(btn=>btn.addEventListener('click',async()=>{
+  const id=btn.dataset.v92Save,ground=[...host.querySelectorAll('[data-v92-ground]')].find(el=>el.dataset.v92Ground===id)?.value,lines=[...host.querySelectorAll('[data-v92-lines]')].find(el=>el.dataset.v92Lines===id)?.checked;
+  if(!['grass','court','neutral'].includes(ground))return;
+  try{await v93Persist('surface',id,{ground,lines});document.getElementById('v92-surface-status').textContent='3D environment saved to Supabase.'}
+  catch(e){document.getElementById('v92-surface-status').textContent=e.message}
+ }))
+}
+function v93SettingsFor(space){const id=String(space||'Small fielding area');return {assets:v93Config.assets,surface:v93Config.surfaces[id.startsWith('custom:')||id.startsWith('standard:')?id:'standard:'+id]||{ground:id==='Court'?'court':'grass',lines:true}}}
 async function compactImage(file,w,h,limit=250000){if(!file||!['image/png','image/jpeg','image/webp'].includes(file.type))throw Error('Select a PNG, JPEG or WebP image.');if(file.size>8*1024*1024)throw Error('Image must be smaller than 8 MB.');const url=URL.createObjectURL(file);try{const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,w,h);const scale=Math.min(w/img.width,h/img.height),iw=img.width*scale,ih=img.height*scale;ctx.drawImage(img,(w-iw)/2,(h-ih)/2,iw,ih);for(const quality of [.85,.7,.55,.4,.25]){const data=canvas.toDataURL('image/webp',quality);if(data.length<limit*1.36)return data}throw Error('Image could not be compressed enough. Try a simpler image.')}finally{URL.revokeObjectURL(url)}}
 async function upsertStudioIcon(entry){if(!adminAuthorized)throw Error('Admin sign-in required');const {error}=await cloudClient.from('studio_icons').upsert(entry,{onConflict:'icon_key'});if(error)throw error;await loadStudioIcons();renderIconManager()}
 async function saveStudioIcon(key){const status=$('iconManagerStatus');try{const file=$('iconFile_'+key).files[0],existing=iconRecord(key);const image_data=file?await compactImage(file,128,128,90000):(existing?.image_data||null);await upsertStudioIcon({icon_key:key,label:$('iconName_'+key).value.trim()||defaultIconNames[key]||key,image_data,enabled:$('iconEnabled_'+key).checked});status.textContent='Icon updated.'}catch(e){status.textContent=e.message}}
@@ -1303,9 +1345,10 @@ window.v84SetView=function(view){
     });
     return {items};
    });
-   iframe.contentWindow.postMessage({kind:'cas-v80-frame',version:String(publicPlayer.version),title:String(a.name||''),time:t,total:publicPlayer.total,playing:publicPlayer.playing,...payload},'*');
+   v93Kickoff();iframe.contentWindow.postMessage({kind:'cas-v80-frame',config3d:v93SettingsFor(a.space),version:String(publicPlayer.version),title:String(a.name||''),time:t,total:publicPlayer.total,playing:publicPlayer.playing,...payload},'*');
   }catch(err){console.warn('Optional 3D preview unavailable:',err)}
  }
+ window.addEventListener('cas-v93-config-ready',()=>send3D(true));
  const originalOpen=window.openPublicActivity;
  if(typeof originalOpen==='function')window.openPublicActivity=function(){const result=originalOpen.apply(this,arguments);window.v84SetView('2d');return result};
  const originalRender=window.publicRenderFrame;
@@ -1363,7 +1406,7 @@ window.v84SetView=function(view){
     return {id:String(item.id),type:String(item.type),number:Number(item.number)||0,x,y,height};
    });
    const version=String(current.id||current.name||'unsaved');
-   $v('v90-builder-iframe').contentWindow.postMessage({kind:'cas-v80-frame',version,title:String(current.name||'Unsaved activity'),time,total,playing,items},location.origin);
+   v93Kickoff();$v('v90-builder-iframe').contentWindow.postMessage({kind:'cas-v80-frame',config3d:v93SettingsFor(current.space),version,title:String(current.name||'Unsaved activity'),time,total,playing,items},location.origin);
   }catch(err){console.warn('Admin 3D preview unavailable:',err)}
  }
  function loop(){if(active)sync(false);requestAnimationFrame(loop)}
