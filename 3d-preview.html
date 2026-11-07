@@ -77,7 +77,7 @@ function v95SyncModels(){
  }
  for(const key of Object.keys(v95Models))if(v95Models[key].url!==v95Urls[key])delete v95Models[key];
 }
-function v95Ready(key){return !!v95Engine&&!!v95Models[key]}
+function v95Ready(key){if(['player','coach','coachBat','coachBall'].includes(key))return false;return !!v95Engine&&!!v95Models[key]}
 // V99: stable per-item GLB instances, authored animation playback, and bone-based walking fallback.
 function v99LegBones(root){
  const legs=[];
@@ -93,7 +93,7 @@ function v95Draw(){
  const c=camera();cam.position.set(c.p.x,c.p.y,c.p.z);cam.up.set(c.up.x,c.up.y,c.up.z);cam.lookAt(c.target.x,c.target.y,c.target.z);
  const used=new Set();
  const add=(id,key,x,z,height,y=0)=>{
-  const entry=v95Models[key];if(!entry)return;
+  const entry=v95Models[key];if(!entry||['player','coach','coachBat','coachBall'].includes(key))return;
   used.add(id);
   let inst=v99Instances.get(id);
   if(!inst||inst.url!==entry.url||inst.key!==key){
@@ -181,7 +181,41 @@ function drawGround(P){
  const corners=[P(V(focus.x-half,.025,focus.z-half)),P(V(focus.x+half,.025,focus.z-half)),P(V(focus.x+half,.025,focus.z+half)),P(V(focus.x-half,.025,focus.z+half))];
  if(v93Surface.lines!==false&&corners.every(p=>p.visible))line([...corners,corners[0]],'#e7f3e344',1.4);
 }
-function drawPerson(P,pos,id,isCoach,assetKey){const conf=v93Asset(assetKey|| (isCoach?'coach':'player')),size=conf.scale;let base=P(V(pos.x,0,pos.z));if(!base.visible)return;let head=P(V(pos.x,1.75*size,pos.z)),neck=P(V(pos.x,1.48*size,pos.z)),hip=P(V(pos.x,.8*size,pos.z)),lfoot=P(V(pos.x-.18*size,.06,pos.z)),rfoot=P(V(pos.x+.18*size,.06,pos.z)),larm=P(V(pos.x-.38*size,1.02*size,pos.z)),rarm=P(V(pos.x+.38*size,1.02*size,pos.z));let w=clamp(head.s*.245*size,2.5,42);circle(P(V(pos.x,.03,pos.z)),clamp(base.s*.36,3,35),'#183e2c88');line([hip,lfoot],'#203d5a',w*.85);line([hip,rfoot],'#203d5a',w*.85);line([neck,hip],isCoach?'#e5edf6':'#f6c346',w*2.7);line([neck,larm],isCoach?'#e5edf6':'#f6c346',w*.7);line([neck,rarm],isCoach?'#e5edf6':'#f6c346',w*.7);circle(head,w*.92,'#edbf95','#ae835f');if(head.s>5){ctx.fillStyle=isCoach?'#0f3550':'#172e3b';ctx.textAlign='center';ctx.font=`bold ${clamp(head.s*.34,11,23)}px system-ui`;ctx.fillText(isCoach?'C'+id:String(id),neck.x,lerp(neck.y,hip.y,.5)+3)}}
+function drawPerson(P,pos,id,isCoach,assetKey){
+ const conf=v93Asset(assetKey||(isCoach?'coach':'player'));
+ // Character proportions are authored for the 3D field, independent of custom GLB assets.
+ const s=conf.scale, key=(isCoach?'coach:':'player:')+id;
+ const prev=v100Motion.get(key),dx=prev?pos.x-prev.x:0,dz=prev?pos.z-prev.z:0;
+ const dt=prev?Math.abs(t-prev.t):0, distance=Math.hypot(dx,dz);
+ const walking=dt>.001&&dt<.5&&distance>.009;
+ let state=v100Gait.get(key)||{phase:0,amount:0};
+ state.amount+=(Number(walking)-state.amount)*.25;
+ if(walking)state.phase+=Math.min(distance*2.8,.55);
+ v100Gait.set(key,state);v100Motion.set(key,{x:pos.x,z:pos.z,t});
+ const gait=Math.sin(state.phase)*state.amount, armGait=Math.sin(state.phase+Math.PI)*state.amount;
+ const at=(x,y,z)=>P(V(pos.x+x*s,y*s,pos.z+z*s));
+ const shadow=at(0,.025,0),head=at(0,1.72,0),neck=at(0,1.44,0),hips=at(0,.84,0);
+ if(!head.visible)return;
+ const unit=clamp(head.s*.21*s,2,36),shirt=isCoach?'#b6dfed':'#fd6e6e',shorts='#002941',skin='#e9b48c';
+ circle(shadow,clamp(unit*1.5,3,32),'#1c433c77');
+ const leftHip=at(-.15,.8,0),rightHip=at(.15,.8,0);
+ const lknee=at(-.17,.45,gait*.24),rknee=at(.17,.45,-gait*.24);
+ const lfoot=at(-.17,.08,gait*.38),rfoot=at(.17,.08,-gait*.38);
+ line([leftHip,lknee],shorts,unit*.92);line([lknee,lfoot],shorts,unit*.7);
+ line([rightHip,rknee],shorts,unit*.92);line([rknee,rfoot],shorts,unit*.7);
+ circle(lfoot,unit*.42,'#142d44');circle(rfoot,unit*.42,'#142d44');
+ line([neck,hips],shirt,unit*2.55);
+ const lElbow=at(-.42,1.1,armGait*.16),rElbow=at(.42,1.1,-armGait*.16);
+ const lHand=at(-.44,.91,armGait*.3),rHand=at(.44,.91,-armGait*.3);
+ line([at(-.21,1.37,0),lElbow],shirt,unit*.7);line([lElbow,lHand],skin,unit*.43);
+ line([at(.21,1.37,0),rElbow],shirt,unit*.7);line([rElbow,rHand],skin,unit*.43);
+ circle(head,unit*.94,skin,'#a77960');
+ // Cap with visible brim, designed to match the simple cartoony player icon.
+ line([at(-.19,1.87,0),at(.19,1.87,0)],shirt,unit*.6);
+ line([at(0,1.86,0),at(.26,1.82,-.08)],shirt,unit*.28);
+ if(head.s>5){const label=at(0,1.12,0);ctx.fillStyle='#002941';ctx.textAlign='center';ctx.font=`bold ${clamp(head.s*.34,11,22)}px system-ui`;ctx.fillText(isCoach?'C'+id:String(id),label.x,label.y+3)}
+}
+const v100Motion=new Map(),v100Gait=new Map();
 function drawPersonNumber(P,pos,id,isCoach){const anchor=P(V(pos.x,1.05*v93Asset(isCoach?'coach':'player').scale,pos.z));if(!anchor.visible)return;ctx.textAlign='center';ctx.font='bold 14px system-ui';ctx.lineWidth=3;ctx.strokeStyle='#ffffff';ctx.fillStyle='#15324a';ctx.strokeText((isCoach?'C':'')+id,anchor.x,anchor.y);ctx.fillText((isCoach?'C':'')+id,anchor.x,anchor.y)}
 function drawCone(P,x,z){if(v95Ready('cone'))return;const conf=v93Asset('cone'),size=conf.scale,flat=conf.model==='Flat marker';let base=P(V(x,0,z)),peak=P(V(x,(flat?.12:.38)*size,z)),l=P(V(x-.23*size,.01,z)),r=P(V(x+.23*size,.01,z));poly([l,peak,r],'#ff8a3c','#ffefc6',1.2);line([l,r],'#fff0d5',1.5)}
 function drawStumps(P,x,z,key='stumps'){if(v95Ready(key))return;const size=v93Asset('stumps').scale;for(let dx of [-.15,0,.15])line([P(V(x+dx*size,0,z)),P(V(x+dx*size,.75*size,z))],'#f9f5df',clamp(P(V(x,0,z)).s*.045,1,5));line([P(V(x-.2*size,.76*size,z)),P(V(x+.2*size,.76*size,z))],'#f9f5df',2)}
@@ -200,7 +234,7 @@ window.addEventListener('message',event=>{
  if(event.source!==window.parent||event.origin!==location.origin)return;
  const msg=event.data;if(!msg||msg.kind!=='cas-v80-frame'||!Array.isArray(msg.items))return;
  const newVersion=liveVersion!==msg.version;
- if(msg.config3d&&typeof msg.config3d==='object'){v93Assets=msg.config3d.assets||{};v95Urls=msg.config3d.modelUrls||{};v95SyncModels();v93Surface=msg.config3d.surface||{ground:'grass',lines:true};}
+ if(msg.config3d&&typeof msg.config3d==='object'){v93Assets=msg.config3d.assets||{};v95Urls={...(msg.config3d.modelUrls||{})};for(const key of ['player','coach','coachBat','coachBall'])delete v95Urls[key];v95SyncModels();v93Surface=msg.config3d.surface||{ground:'grass',lines:true};}
  liveData=true;liveVersion=msg.version;
  const map=p=>({x:(Number(p.x)-350)/22,z:(Number(p.y)-265)/22,id:Number(p.number)||1});
  const all=msg.items.filter(p=>Number.isFinite(Number(p.x))&&Number.isFinite(Number(p.y)));
@@ -209,7 +243,7 @@ window.addEventListener('message',event=>{
  cones=all.filter(p=>p.type==='cone').map(p=>{const v=map(p);return [v.x,v.z]});
  stumps=all.filter(p=>['stumps','singleStump'].includes(p.type)).map(p=>({...map(p),key:p.type}));
  if(newVersion){
-  v99Previous.clear();
+  v99Previous.clear();v100Motion.clear();v100Gait.clear();
   const pts=[...players,...coaches,...stumps,...cones.map(([x,z])=>({x,z}))];
   if(pts.length){const xs=pts.map(p=>p.x),zs=pts.map(p=>p.z);focus=V((Math.min(...xs)+Math.max(...xs))/2,0,(Math.min(...zs)+Math.max(...zs))/2);fieldSpan=Math.max(10,Math.max(...xs)-Math.min(...xs),Math.max(...zs)-Math.min(...zs));dist=clamp(fieldSpan*.77,9,45);az=.7;elev=.43;document.getElementById('cameraPreset').value='overview';}
  }
