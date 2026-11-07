@@ -13,6 +13,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#b5d8e6}
 </style><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"}}</script></head><body><div class="app"><header class="top"><div><div class="eyebrow">CRICKET ACTIVITY STUDIO · INTERACTIVE CONCEPT</div><h1>Explore your drill in 3D</h1></div><span class="chip">Browser-rendered · No Supabase · $0 libraries</span></header><div class="layout"><main class="panel"><div class="toolbar"><div class="seg" role="group" aria-label="Viewing mode"><button data-mode="angled" class="active">Angled 3D</button></div><label class="preset-label" for="cameraPreset">Camera angle</label><select id="cameraPreset" class="select" aria-label="Camera angle"><option value="overview">Overview</option><option value="side">Side-on</option><option value="low">Low angle</option><option value="overhead">Overhead</option><option value="custom">Custom angle</option></select><button id="resetCamera" class="secondary" type="button">Reset view</button></div><div class="stagewrap"><canvas id="stage"></canvas><div id="viewLabel" class="overlay">ANGLED 3D · Explore the setup</div><div id="tip" class="tip">Drag to rotate · Scroll to zoom</div></div><div class="playback"><button id="play" class="primary">▶ Play</button><button id="reset" class="secondary">↺ Reset</button><input id="timeline" class="timeline" type="range" min="0" max="1000" value="0" aria-label="Animation progress"><span id="time" class="time">0.0 / 16s</span><select id="speed" class="select" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></div></main><aside class="panel side"><h2>Explore the drill</h2><p>Explore the saved drill from different angles. Drag to rotate, scroll to zoom, or choose a camera preset.</p><div class="field"><label for="fov">Camera field of view: <strong id="fovLabel">75°</strong></label><input id="fov" type="range" min="50" max="95" value="75" step="1"></div><div class="field"><label for="ballMode">Delivery sequence (demo only)</label><select id="ballMode"><option value="mixed">Mixed — ground, low, high</option><option value="ground">All ground</option><option value="low">All low throws</option><option value="high">All high throws</option></select></div><div class="mini"><strong>What to look for</strong><p>Orbit around the activity to understand player spacing, equipment placement and ball movement. Choose a preset to quickly change perspective.</p></div><div class="legend"><span><i class="dot" style="background:#f5bd43"></i>Players</span><span><i class="dot" style="background:#eaf4ff"></i>Coaches</span><span><i class="dot" style="background:#ff944f"></i>Cones</span><span><i class="dot" style="background:#fff266"></i>Ball</span></div></aside></div><p class="footer">3D preview · Uses the published activity positions and timeline when embedded in Cricket Activity Studio. No additional database storage required.</p></div><script>
 (()=>{'use strict';
 let liveData=false,liveBall=null,liveDuration=16,liveVersion='',livePositions=[];
+let v99Instances=new Map(),v99Previous=new Map(),v99LastTime=null;
 let v93Assets={},v95Urls={},v95Models={},v95Pending={},v95Engine=null,v95Unavailable=false,v93Surface={ground:'grass',lines:true};
 function v93Asset(key){const v=v93Assets[key]||{};return {model:String(v.model||''),scale:Math.max(.25,Math.min(3,Number(v.scale)||1)),rotation:Number(v.rotation)||0}}
 const canvas=document.getElementById('stage'),ctx=canvas.getContext('2d');
@@ -26,14 +27,15 @@ async function v95Init(){
  try{
   const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js');
   const {GLTFLoader}=await import('https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/loaders/GLTFLoader.js');
+  const {clone:cloneSkinned}=await import('https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/utils/SkeletonUtils.js');
   const renderer=new THREE.WebGLRenderer({canvas:v95Layer,alpha:true,antialias:true});
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;
   const scene=new THREE.Scene();const cam=new THREE.PerspectiveCamera();
   // V96: soft, neutral studio lighting for custom GLBs, matching the Admin model preview.
-  scene.add(new THREE.HemisphereLight(0xffffff,0xffffff,3));
-  scene.add(new THREE.AmbientLight(0xffffff,1.25));
-  const light=new THREE.DirectionalLight(0xffffff,2.4);light.position.set(-8,20,12);scene.add(light);
-  v95Engine={THREE,GLTFLoader,renderer,scene,cam};return v95Engine;
+  scene.add(new THREE.HemisphereLight(0xffffff,0xe8eef5,1.25));
+  scene.add(new THREE.AmbientLight(0xffffff,0.45));
+  const light=new THREE.DirectionalLight(0xffffff,1.55);light.position.set(-8,20,12);scene.add(light);
+  v95Engine={THREE,GLTFLoader,cloneSkinned,renderer,scene,cam};return v95Engine;
  }catch(e){console.warn('V95 custom model renderer unavailable; built-in fallback retained',e);v95Unavailable=true;return null}
 }
 function v95SyncModels(){
@@ -54,8 +56,8 @@ function v95SyncModels(){
         const m=mat.clone();
         if(m.color&&m.emissive){
           m.emissive.copy(m.color);
-          m.emissiveIntensity=0.55;
-          if(m.map&&'emissiveMap' in m)m.emissiveMap=m.map;
+          m.emissiveIntensity=0.12;
+          // Keep authored textures and base colours; avoid washing out coral materials.
         }
         return m;
       };
@@ -69,33 +71,66 @@ function v95SyncModels(){
     // Ground centre and normalize: scaling in Admin remains meaningful for all GLBs.
     root.position.set(-(box.min.x+box.max.x)/2,-box.min.y,-(box.min.z+box.max.z)/2);
     const holder=new engine.THREE.Group();holder.add(root);holder.scale.setScalar(1/max);
-    v95Models[key]={url,holder};delete v95Pending[key];
+    v95Models[key]={url,holder,clips:gltf.animations||[]};v99Instances.clear();v99Previous.clear();delete v95Pending[key];
    },undefined,e=>{console.warn('GLB failed to load; built-in fallback:',key,e);delete v95Pending[key]});
   });
  }
  for(const key of Object.keys(v95Models))if(v95Models[key].url!==v95Urls[key])delete v95Models[key];
 }
 function v95Ready(key){return !!v95Engine&&!!v95Models[key]}
+// V99: stable per-item GLB instances, authored animation playback, and bone-based walking fallback.
+function v99LegBones(root){
+ const legs=[];
+ root.traverse(n=>{if(!n.isBone)return;const name=n.name.toLowerCase();
+  if(/(thigh|upper.?leg|upleg)/.test(name)&&!/(twist|helper|ik|target)/.test(name))legs.push({bone:n,base:n.rotation.x,side:/(right|_r\b|\.r\b)/.test(name)?-1:1});
+ });return legs;
+}
 function v95Draw(){
  const e=v95Engine;if(!e)return;
  const {THREE,renderer,scene,cam}=e;
- for(const child of [...scene.children])if(child.userData.v95Instance)scene.remove(child);
  renderer.setSize(Math.max(1,W),Math.max(1,H),false);
  cam.aspect=W/Math.max(H,1);cam.fov=fov;cam.near=.18;cam.far=500;cam.updateProjectionMatrix();
  const c=camera();cam.position.set(c.p.x,c.p.y,c.p.z);cam.up.set(c.up.x,c.up.y,c.up.z);cam.lookAt(c.target.x,c.target.y,c.target.z);
- const add=(key,x,z,height,y=0)=>{
+ const used=new Set();
+ const add=(id,key,x,z,height,y=0)=>{
   const entry=v95Models[key];if(!entry)return;
-  const obj=entry.holder.clone(true);obj.userData.v95Instance=true;
+  used.add(id);
+  let inst=v99Instances.get(id);
+  if(!inst||inst.url!==entry.url||inst.key!==key){
+   if(inst)scene.remove(inst.object);
+   const object=e.cloneSkinned(entry.holder);scene.add(object);
+   const clips=entry.clips||[];
+   const walk=clips.find(a=>/(walk|run|jog|locomot)/i.test(a.name))||clips[0];
+   const mixer=walk?new THREE.AnimationMixer(object):null;
+   const action=mixer?mixer.clipAction(walk):null;
+   if(action)action.play();
+   inst={object,url:entry.url,key,mixer,action,legs:v99LegBones(object),lastTime:null};v99Instances.set(id,inst);
+  }
   const scale=v93Asset(key).scale;
-  obj.scale.multiplyScalar(height*scale);obj.position.set(x,y,z);obj.rotation.y=(v93Asset(key).rotation||0)*Math.PI/180;scene.add(obj);
+  inst.object.scale.setScalar(height*scale);inst.object.position.set(x,y,z);
+  const prev=v99Previous.get(id);
+  const dt=prev?t-prev.time:0;
+  const dx=prev?x-prev.x:0,dz=prev?z-prev.z:0;
+  const distance=Math.hypot(dx,dz);
+  const moving=dt>0.001&&dt<0.5&&distance>0.008;
+  if(moving&&key!=='ball')inst.heading=Math.atan2(dx,dz);
+  inst.object.rotation.y=(v93Asset(key).rotation||0)*Math.PI/180+(inst.heading||0);
+  if(inst.action){inst.action.paused=!moving;if(moving&&inst.mixer)inst.mixer.update(Math.min(dt,0.1)*1.3);}
+  else if(inst.legs.length){
+   const phase=t*10;
+   for(const leg of inst.legs)leg.bone.rotation.x=leg.base+(moving?Math.sin(phase)*0.42*leg.side:0);
+  }
+  v99Previous.set(id,{x,z,time:t});
  };
- for(const [x,z] of cones)add('cone',x,z,.45);
- for(const item of stumps)add(item.key||'stumps',item.x,item.z,.85);
- players.forEach((p,i)=>{const pos=playerPosition(i,t);add('player',pos.x,pos.z,1.8)});
- coaches.forEach(c=>add(c.key||'coach',c.x,c.z,1.8));
- const b=ballPosition(t);if(b)add('ball',b.x,b.z,.26,b.y);
+ for(let i=0;i<cones.length;i++){const [x,z]=cones[i];add('cone:'+i,'cone',x,z,.45)}
+ stumps.forEach((item,i)=>add('stump:'+i,item.key||'stumps',item.x,item.z,.85));
+ players.forEach((p,i)=>{const pos=playerPosition(i,t);add('player:'+i,'player',pos.x,pos.z,1.8)});
+ coaches.forEach((c,i)=>add('coach:'+i,c.key||'coach',c.x,c.z,1.8));
+ const b=ballPosition(t);if(b)add('ball:0','ball',b.x,b.z,.26,b.y);
+ for(const [id,inst] of v99Instances)if(!used.has(id)){scene.remove(inst.object);v99Instances.delete(id);v99Previous.delete(id)}
  renderer.render(scene,cam);
 }
+
 let W=900,H=560,dpr=1,mode='angled',coachIdx=0,eye=1.9,fov=75,az=0.7,elev=.57,dist=24,playing=false,t=0,last=0,drag=null;
 let focus={x:0,y:0,z:0},fieldSpan=20;
 let coaches=[{x:0,z:9,heading:0},{x:8,z:-2,heading:-1.6}],players=[{id:1,x:-6,z:-3},{id:2,x:6,z:-5},{id:3,x:-4,z:5},{id:4,x:4,z:4}],cones=[[-8,-7],[0,-7],[8,-7],[-8,7],[0,7],[8,7]],stumps=[{x:0,z:-10},{x:0,z:10}];
@@ -174,6 +209,7 @@ window.addEventListener('message',event=>{
  cones=all.filter(p=>p.type==='cone').map(p=>{const v=map(p);return [v.x,v.z]});
  stumps=all.filter(p=>['stumps','singleStump'].includes(p.type)).map(p=>({...map(p),key:p.type}));
  if(newVersion){
+  v99Previous.clear();
   const pts=[...players,...coaches,...stumps,...cones.map(([x,z])=>({x,z}))];
   if(pts.length){const xs=pts.map(p=>p.x),zs=pts.map(p=>p.z);focus=V((Math.min(...xs)+Math.max(...xs))/2,0,(Math.min(...zs)+Math.max(...zs))/2);fieldSpan=Math.max(10,Math.max(...xs)-Math.min(...xs),Math.max(...zs)-Math.min(...zs));dist=clamp(fieldSpan*.77,9,45);az=.7;elev=.43;document.getElementById('cameraPreset').value='overview';}
  }
