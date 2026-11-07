@@ -933,7 +933,7 @@ const V94_BUCKET='studio-3d-models';
 const v94UrlCache=new Map();
 function v94UploadRow(key){
  const cfg=v93Config.assets[key]||{},has=Boolean(cfg.glbPath);
- return `<div class="v94-model-box"><div class="v94-head">Custom 3D model (.glb) <span class="v92-draft-tag">V94</span></div><div class="v94-fields"><input id="v94-file-${key}" type="file" accept=".glb,model/gltf-binary" aria-label="GLB file for ${esc(key)}"><button type="button" onclick="v94Upload('${key}')">Upload GLB</button><button type="button" onclick="v94Preview('${key}')" ${has?'':'disabled'}>Preview model</button><button type="button" onclick="v94Remove('${key}')" ${has?'':'disabled'}>Remove model</button></div><div class="v94-info" id="v94-status-${key}">${has?'Saved GLB: '+esc(cfg.glbName||'Custom model'):'No custom GLB uploaded. Built-in 3D model remains active.'} · Max 10 MB. Custom models are not yet drawn in the activity viewer.</div><model-viewer id="v94-preview-${key}" class="v94-preview" camera-controls auto-rotate shadow-intensity="1" exposure="1" alt="3D preview of ${esc(key)}"></model-viewer></div>`;
+ return `<div class="v94-model-box"><div class="v94-head">Custom 3D model (.glb) <span class="v92-draft-tag">V94</span></div><div class="v94-fields"><input id="v94-file-${key}" type="file" accept=".glb,model/gltf-binary" aria-label="GLB file for ${esc(key)}"><button type="button" onclick="v94Upload('${key}')">Upload GLB</button><button type="button" onclick="v94Preview('${key}')" ${has?'':'disabled'}>Preview model</button><button type="button" onclick="v94Remove('${key}')" ${has?'':'disabled'}>Remove model</button></div><div class="v94-info" id="v94-status-${key}">${has?'Saved GLB: '+esc(cfg.glbName||'Custom model'):'No custom GLB uploaded. Built-in 3D model remains active.'} · Max 10 MB. Custom models appear in 3D activities once V95 is deployed.</div><model-viewer id="v94-preview-${key}" class="v94-preview" camera-controls auto-rotate shadow-intensity="1" exposure="1" alt="3D preview of ${esc(key)}"></model-viewer></div>`;
 }
 function v94Status(key,msg){const el=document.getElementById('v94-status-'+key);if(el)el.textContent=msg}
 async function v94Upload(key){
@@ -999,7 +999,18 @@ function v92RenderSurfaceSettings(){
   catch(e){document.getElementById('v92-surface-status').textContent=e.message}
  }))
 }
-function v93SettingsFor(space){const id=String(space||'Small fielding area');return {assets:v93Config.assets,surface:v93Config.surfaces[id.startsWith('custom:')||id.startsWith('standard:')?id:'standard:'+id]||{ground:id==='Court'?'court':'grass',lines:true}}}
+// V95: published 3D assets are intentionally public, so anonymous library viewers can load them.
+// The bucket remains admin-write-only. This URL is never used for private data.
+function v95PublicModelUrls(){
+ const result={};if(!cloudClient)return result;
+ for(const [key,cfg] of Object.entries(v93Config.assets||{})){
+  if(!cfg||typeof cfg.glbPath!=='string'||!cfg.glbPath.startsWith('equipment/'))continue;
+  const {data}=cloudClient.storage.from(V94_BUCKET).getPublicUrl(cfg.glbPath);
+  if(data?.publicUrl)result[key]=data.publicUrl;
+ }
+ return result;
+}
+function v93SettingsFor(space){const id=String(space||'Small fielding area');return {assets:v93Config.assets,modelUrls:v95PublicModelUrls(),surface:v93Config.surfaces[id.startsWith('custom:')||id.startsWith('standard:')?id:'standard:'+id]||{ground:id==='Court'?'court':'grass',lines:true}}}
 async function compactImage(file,w,h,limit=250000){if(!file||!['image/png','image/jpeg','image/webp'].includes(file.type))throw Error('Select a PNG, JPEG or WebP image.');if(file.size>8*1024*1024)throw Error('Image must be smaller than 8 MB.');const url=URL.createObjectURL(file);try{const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,w,h);const scale=Math.min(w/img.width,h/img.height),iw=img.width*scale,ih=img.height*scale;ctx.drawImage(img,(w-iw)/2,(h-ih)/2,iw,ih);for(const quality of [.85,.7,.55,.4,.25]){const data=canvas.toDataURL('image/webp',quality);if(data.length<limit*1.36)return data}throw Error('Image could not be compressed enough. Try a simpler image.')}finally{URL.revokeObjectURL(url)}}
 async function upsertStudioIcon(entry){if(!adminAuthorized)throw Error('Admin sign-in required');const {error}=await cloudClient.from('studio_icons').upsert(entry,{onConflict:'icon_key'});if(error)throw error;await loadStudioIcons();renderIconManager()}
 async function saveStudioIcon(key){const status=$('iconManagerStatus');try{const file=$('iconFile_'+key).files[0],existing=iconRecord(key);const image_data=file?await compactImage(file,128,128,90000):(existing?.image_data||null);await upsertStudioIcon({icon_key:key,label:$('iconName_'+key).value.trim()||defaultIconNames[key]||key,image_data,enabled:$('iconEnabled_'+key).checked});status.textContent='Icon updated.'}catch(e){status.textContent=e.message}}
