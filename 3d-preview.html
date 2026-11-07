@@ -50,6 +50,7 @@ window.addEventListener('message',event=>{
  document.querySelector('.side>p').textContent='This view shows the actual saved drill. Use the main Play and timeline controls below the preview to animate it.';
  sync();draw();
 });
+window.addEventListener('message',event=>{if(event.source===window.parent&&event.origin===location.origin&&event.data?.kind==='cas-v84-visible'){resize();draw()}});
 window.parent.postMessage({kind:'cas-v80-ready'},'*');
 applyPreset('overview');requestAnimationFrame(tick);
 })();
