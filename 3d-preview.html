@@ -27,22 +27,38 @@ function circle(p,r,color,stroke){if(!p.visible||p.x< -500||p.x>W+500||p.y< -500
 function playerPosition(i,time){if(liveData)return V(players[i].x,0,players[i].z);let p=players[i],dx=0,dz=0;if(time>4&&time<12){let k=Math.sin((time-4)/8*Math.PI);if(i===0){dx=1.7*k;dz=1.2*k}if(i===1){dx=-2*k;dz=1.4*k}if(i===2){dx=1*k;dz=-1.4*k}if(i===3){dx=-1.2*k;dz=-1.8*k}}return V(p.x+dx,0,p.z+dz)}
 function delivery(i){const v=document.getElementById('ballMode').value;return v==='mixed'?['ground','low','high'][i]:v}
 function ballPosition(time){if(liveData)return liveBall;let k=Math.min(2,Math.floor(time/5.33)),u=clamp((time-k*5.33)/4.4,0,1);const targets=[playerPosition(0,time),playerPosition(1,time),playerPosition(3,time)],origins=[V(coaches[0].x,0,coaches[0].z),targets[0],targets[1]];const a=origins[k],b=targets[k];let h=delivery(k)==='high'?5.8:delivery(k)==='low'?1.9:.16;return V(lerp(a.x,b.x,u),delivery(k)==='ground'?.14:1.05+4*h*u*(1-u),lerp(a.z,b.z,u))}
+// Clip turf tiles against the camera near plane instead of dropping entire tiles.
+// This prevents sky-coloured gaps when the camera is close to or over the field.
+function groundTile(P,world){
+ const cam=camera(),forward=norm(sub(cam.target,cam.p)),near=.24;
+ const depth=q=>dot(sub(q,cam.p),forward);
+ let clipped=[];
+ for(let i=0;i<world.length;i++){
+  const a=world[i],b=world[(i+1)%world.length],da=depth(a),db=depth(b);
+  if(da>=near)clipped.push(a);
+  if((da>=near)!==(db>=near)){
+   const t=(near-da)/(db-da);
+   clipped.push(V(lerp(a.x,b.x,t),lerp(a.y,b.y,t),lerp(a.z,b.z,t)));
+  }
+ }
+ if(clipped.length<3)return;
+ const projected=clipped.map(P);
+ if(projected.every(q=>q.visible))poly(projected,'#4e9668');
+}
 function drawGround(P){
  const sky=ctx.createLinearGradient(0,0,0,H);
  sky.addColorStop(0,'#9acde8');sky.addColorStop(.63,'#d3e8ec');sky.addColorStop(1,'#e3eee8');
  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
- // Draw a generous turf plane in camera-facing tiles so no single clipped polygon erases the field.
- const step=8,extent=Math.max(72,fieldSpan*4);
+ // Draw continuous turf with camera-near clipping, including the foreground.
+ const step=8,extent=Math.max(112,fieldSpan*5);
  for(let z=-extent;z<extent;z+=step){for(let x=-extent;x<extent;x+=step){
-   const v=[P(V(x,0,z)),P(V(x+step,0,z)),P(V(x+step,0,z+step)),P(V(x,0,z+step))];
-   if(v.every(p=>p.visible))poly(v,'#4e9668');
+  groundTile(P,[V(x,0,z),V(x+step,0,z),V(x+step,0,z+step),V(x,0,z+step)]);
  }}
- // Subtle mowing stripes instead of a cricket pitch or grid.
+ // Faint mowing stripes; no prominent grid.
  for(let z=-extent;z<=extent;z+=16){
-   const a=P(V(-extent,.012,z)),b=P(V(extent,.012,z));
-   if(a.visible&&b.visible)line([a,b],'#ffffff08',1);
+  const a=P(V(-extent,.012,z)),b=P(V(extent,.012,z));
+  if(a.visible&&b.visible)line([a,b],'#ffffff08',1);
  }
- // Activity footprint, not a full-size pitch. Draw only perimeter markers.
  const half=Math.max(8,fieldSpan*.65);
  const corners=[P(V(focus.x-half,.025,focus.z-half)),P(V(focus.x+half,.025,focus.z-half)),P(V(focus.x+half,.025,focus.z+half)),P(V(focus.x-half,.025,focus.z+half))];
  if(corners.every(p=>p.visible))line([...corners,corners[0]],'#e7f3e344',1.4);
