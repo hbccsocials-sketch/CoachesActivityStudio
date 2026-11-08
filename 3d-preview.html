@@ -47,23 +47,30 @@ function v95SyncModels(){
    new engine.GLTFLoader().load(url,gltf=>{
     if(v95Urls[key]!==url)return;
     const root=gltf.scene;
-    // V107: use the GLB's authored albedo for cones, without scene lighting.
-    // V106's emissive boost plus strong lights clipped orange/yellow to white.
-    // An unlit material preserves the source colour and avoids overexposure.
+    // V108: preserve GLB vertex colours. Many exported training cones store
+    // orange/yellow in COLOR_0 (geometry attributes), not material.color.
+    // The V107 MeshBasicMaterial conversion omitted vertexColors and turned
+    // these assets white. Keep textures, alpha, and authored vertex colours.
     if(key==='cone')root.traverse(node=>{
       if(!node.isMesh||!node.material)return;
-      const unlit=mat=>{
+      const convert=mat=>{
+        const hasVertexColors=!!node.geometry?.getAttribute('color');
         const base=mat.color?.clone()||new engine.THREE.Color(0xffffff);
         const m=new engine.THREE.MeshBasicMaterial({
-          color:base,map:mat.map||null,side:engine.THREE.DoubleSide,
-          transparent:!!mat.transparent,opacity:mat.opacity??1,
-          alphaTest:mat.alphaTest||0,depthWrite:mat.depthWrite!==false,
+          color:base,
+          map:mat.map||null,
+          vertexColors:hasVertexColors,
+          side:mat.side??engine.THREE.FrontSide,
+          transparent:!!mat.transparent,
+          opacity:mat.opacity??1,
+          alphaTest:mat.alphaTest||0,
+          depthWrite:mat.depthWrite!==false,
           toneMapped:false
         });
-        if(mat.map)m.map.colorSpace=engine.THREE.SRGBColorSpace;
+        if(m.map)m.map.colorSpace=engine.THREE.SRGBColorSpace;
         return m;
       };
-      node.material=Array.isArray(node.material)?node.material.map(unlit):unlit(node.material);
+      node.material=Array.isArray(node.material)?node.material.map(convert):convert(node.material);
     });
     const box=new engine.THREE.Box3().setFromObject(root);
     if(box.isEmpty()){delete v95Pending[key];return;}
