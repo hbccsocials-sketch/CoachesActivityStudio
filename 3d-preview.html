@@ -56,8 +56,15 @@ function v95SyncModels(){
         const m=mat.clone();
         if(m.color&&m.emissive){
           m.emissive.copy(m.color);
-          m.emissiveIntensity=0.12;
-          // Keep authored textures and base colours; avoid washing out coral materials.
+          // Equipment should read clearly against the green playing field.
+          // Extra self-illumination is limited to cones, preserving the shading
+          // of wickets, balls and other uploaded models.
+          m.emissiveIntensity=key==='cone'?0.68:0.12;
+          if(key==='cone'){
+            m.roughness=1;
+            m.metalness=0;
+            m.side=engine.THREE.DoubleSide;
+          }
         }
         return m;
       };
@@ -122,7 +129,7 @@ function v95Draw(){
   }
   v99Previous.set(id,{x,z,time:t});
  };
- for(let i=0;i<cones.length;i++){const [x,z]=cones[i];add('cone:'+i,'cone',x,z,2.1)}
+ for(let i=0;i<cones.length;i++){const [x,z]=cones[i];add('cone:'+i,'cone',x,z,2.8)}
  stumps.forEach((item,i)=>add('stump:'+i,item.key||'stumps',item.x,item.z,.85));
  players.forEach((p,i)=>{const pos=playerPosition(i,t);add('player:'+i,'player',pos.x,pos.z,1.8)});
  coaches.forEach((c,i)=>add('coach:'+i,c.key||'coach',c.x,c.z,1.8));
