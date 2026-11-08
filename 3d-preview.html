@@ -47,28 +47,32 @@ function v95SyncModels(){
    new engine.GLTFLoader().load(url,gltf=>{
     if(v95Urls[key]!==url)return;
     const root=gltf.scene;
-    // V108: preserve GLB vertex colours. Many exported training cones store
-    // orange/yellow in COLOR_0 (geometry attributes), not material.color.
-    // The V107 MeshBasicMaterial conversion omitted vertexColors and turned
-    // these assets white. Keep textures, alpha, and authored vertex colours.
-    if(key==='cone')root.traverse(node=>{
+    // V109: consistent, neutral material treatment for ALL custom equipment.
+    // Avoid scene-light-dependent black stumps and overexposed white cones.
+    // Preserve authored textures and vertex colours when they are meaningful.
+    const equipmentPalette={cone:0xffb52f,stumps:0xd9b783,singleStump:0xd9b783,catchingRamp:0xff914d};
+    if(Object.prototype.hasOwnProperty.call(equipmentPalette,key))root.traverse(node=>{
       if(!node.isMesh||!node.material)return;
       const convert=mat=>{
-        const hasVertexColors=!!node.geometry?.getAttribute('color');
-        const base=mat.color?.clone()||new engine.THREE.Color(0xffffff);
-        const m=new engine.THREE.MeshBasicMaterial({
-          color:base,
-          map:mat.map||null,
-          vertexColors:hasVertexColors,
-          side:mat.side??engine.THREE.FrontSide,
-          transparent:!!mat.transparent,
-          opacity:mat.opacity??1,
-          alphaTest:mat.alphaTest||0,
-          depthWrite:mat.depthWrite!==false,
-          toneMapped:false
+        const THREE=engine.THREE;
+        const fallback=new THREE.Color(equipmentPalette[key]);
+        const original=mat.color?.clone()||new THREE.Color(0xffffff);
+        const hasMap=!!mat.map;
+        const hasVertexColors=!!node.geometry?.getAttribute('color') && mat.vertexColors!==false;
+        // Exported files can contain placeholder white/black materials even
+        // though their preview looks coloured under its studio environment.
+        // Only tint neutral untextured surfaces; retain real authored colours.
+        const hsl={h:0,s:0,l:0};original.getHSL(hsl);
+        const neutral=!hasMap&&!hasVertexColors&&(hsl.s<0.09||hsl.l<0.055);
+        const color=neutral?fallback:original;
+        const material=new THREE.MeshBasicMaterial({
+          color, map:mat.map||null, vertexColors:hasVertexColors,
+          side:mat.side??THREE.DoubleSide, transparent:!!mat.transparent,
+          opacity:mat.opacity??1, alphaTest:mat.alphaTest||0,
+          depthWrite:mat.depthWrite!==false, toneMapped:false
         });
-        if(m.map)m.map.colorSpace=engine.THREE.SRGBColorSpace;
-        return m;
+        if(material.map)material.map.colorSpace=THREE.SRGBColorSpace;
+        return material;
       };
       node.material=Array.isArray(node.material)?node.material.map(convert):convert(node.material);
     });
