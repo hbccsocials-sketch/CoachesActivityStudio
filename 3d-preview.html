@@ -47,28 +47,23 @@ function v95SyncModels(){
    new engine.GLTFLoader().load(url,gltf=>{
     if(v95Urls[key]!==url)return;
     const root=gltf.scene;
-    // V96: preserve the GLB's authored base colour under the outdoor viewer's lighting.
-    // A small matching emissive contribution avoids the dark/muddy appearance
-    // of small coral equipment without flattening its shape or texture.
-    root.traverse(node=>{
+    // V107: use the GLB's authored albedo for cones, without scene lighting.
+    // V106's emissive boost plus strong lights clipped orange/yellow to white.
+    // An unlit material preserves the source colour and avoids overexposure.
+    if(key==='cone')root.traverse(node=>{
       if(!node.isMesh||!node.material)return;
-      const brighten=mat=>{
-        const m=mat.clone();
-        if(m.color&&m.emissive){
-          m.emissive.copy(m.color);
-          // Equipment should read clearly against the green playing field.
-          // Extra self-illumination is limited to cones, preserving the shading
-          // of wickets, balls and other uploaded models.
-          m.emissiveIntensity=key==='cone'?0.68:0.12;
-          if(key==='cone'){
-            m.roughness=1;
-            m.metalness=0;
-            m.side=engine.THREE.DoubleSide;
-          }
-        }
+      const unlit=mat=>{
+        const base=mat.color?.clone()||new engine.THREE.Color(0xffffff);
+        const m=new engine.THREE.MeshBasicMaterial({
+          color:base,map:mat.map||null,side:engine.THREE.DoubleSide,
+          transparent:!!mat.transparent,opacity:mat.opacity??1,
+          alphaTest:mat.alphaTest||0,depthWrite:mat.depthWrite!==false,
+          toneMapped:false
+        });
+        if(mat.map)m.map.colorSpace=engine.THREE.SRGBColorSpace;
         return m;
       };
-      node.material=Array.isArray(node.material)?node.material.map(brighten):brighten(node.material);
+      node.material=Array.isArray(node.material)?node.material.map(unlit):unlit(node.material);
     });
     const box=new engine.THREE.Box3().setFromObject(root);
     if(box.isEmpty()){delete v95Pending[key];return;}
