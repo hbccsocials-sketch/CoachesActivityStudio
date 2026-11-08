@@ -1562,7 +1562,24 @@ function setActionCallTiming(i,v){const p=current.paths[i];if(p){p.communication
 function setPathTrigger(i,v){current.paths[i].trigger=v;renderPathList()}
 function setPathLink(i,v){current.paths[i].linkedPersonId=v||null;renderPathList()}
 function setPathTiming(i,k,v){current.paths[i][k]=Math.max(k==='duration'?.2:0,Math.min(20,Number(v)||0));renderPathList()}
-function deletePath(i){current.paths.splice(i,1);selectedActionIndex=null;renderCanvas()}
+function reconnectMovementChain(itemId){
+ // A player's successive movement legs must share endpoints.
+ const item=current.items.find(x=>x.id===itemId);
+ if(!item)return;
+ let previous=[item.x,item.y];
+ for(const path of current.paths){
+  if(path.itemId!==itemId||!Array.isArray(path.points)||path.points.length<2)continue;
+  path.points[0]=[...previous];
+  previous=[...path.points.at(-1)];
+ }
+}
+function deletePath(i){
+ const removed=current.paths[i];
+ current.paths.splice(i,1);
+ if(removed?.itemId)reconnectMovementChain(removed.itemId);
+ selectedActionIndex=null;
+ renderCanvas();
+}
 function svgPoint(e){const pt=$('canvas').createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const mat=$('canvas').getScreenCTM();if(!mat)return [350,265];const p=pt.matrixTransform(mat.inverse());return [Math.max(0,Math.min(700,p.x)),Math.max(0,Math.min(530,p.y))]}
 function closest(pos){return [...current.items].reverse().find(p=>Math.hypot(p.x-pos[0],p.y-pos[1])<23)}
 $('canvas').addEventListener('pointerdown',e=>{if(playing)return;const pos=svgPoint(e);let hit=closest(pos);if(tool==='coachReturn'){const person=[...current.items].reverse().find(p=>['player','coach','coachBat','coachBall'].includes(p.type)&&Math.hypot(p.x-pos[0],p.y-pos[1])<28);if(person)hit=person;}if(tool==='select'){
@@ -1602,6 +1619,9 @@ $('canvas').addEventListener('dblclick',e=>{if(tool==='move'&&drawing){e.prevent
   const path=current.paths[drag.pathIndex];
   if(path?.points?.[drag.pointIndex]){
    path.points[drag.pointIndex]=pos;
+   // Move the starting point of the next leg for this same item as well.
+   const next=current.paths.slice(drag.pathIndex+1).find(p=>p.itemId===path.itemId&&p.points?.length>1);
+   if(next)next.points[0]=[...pos];
    // Keep the SVG pointer capture stable during touch dragging.
    // Redraw once on release rather than replacing the captured SVG subtree.
    const line=$('canvas').querySelector(`[data-movement-line="${drag.pathIndex}"]`);
