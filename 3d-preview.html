@@ -229,10 +229,19 @@ function drawPerson(P,pos,id,isCoach,assetKey){
  line([at(.21,1.37,0),rElbow],shirt,unit*.7);line([rElbow,rHand],skin,unit*.43);
  circle(head,unit*.94,skin,'#a77960');
  // V103: no headwear for players or coaches.
- if(head.s>5){const label=at(0,1.12,0);ctx.fillStyle='#002941';ctx.textAlign='center';ctx.font=`bold ${clamp(head.s*.34,11,22)}px system-ui`;ctx.fillText(isCoach?'C'+id:String(id),label.x,label.y+3)}
+ if(head.s>5){drawNumberBadge(at(0,1.12,0),isCoach?'C'+id:String(id),head.s)}
 }
 const v100Motion=new Map(),v100Gait=new Map();
-function drawPersonNumber(P,pos,id,isCoach){const anchor=P(V(pos.x,1.05*v93Asset(isCoach?'coach':'player').scale,pos.z));if(!anchor.visible)return;ctx.textAlign='center';ctx.font='bold 14px system-ui';ctx.lineWidth=3;ctx.strokeStyle='#ffffff';ctx.fillStyle='#15324a';ctx.strokeText((isCoach?'C':'')+id,anchor.x,anchor.y);ctx.fillText((isCoach?'C':'')+id,anchor.x,anchor.y)}
+function drawNumberBadge(anchor,label,projectedSize){
+ if(!anchor.visible)return;
+ const fontSize=clamp(projectedSize*.45,13,22),height=fontSize+7;
+ ctx.save();ctx.font=`800 ${fontSize}px system-ui,Arial,sans-serif`;
+ const width=Math.max(height+2,ctx.measureText(String(label)).width+13);
+ ctx.fillStyle='#ffffff';ctx.strokeStyle='#002941';ctx.lineWidth=1.5;
+ ctx.beginPath();ctx.roundRect(anchor.x-width/2,anchor.y-height/2,width,height,4);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#002941';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(label),anchor.x,anchor.y+0.5);ctx.restore();
+}
+function drawPersonNumber(P,pos,id,isCoach){const anchor=P(V(pos.x,1.12*v93Asset(isCoach?'coach':'player').scale,pos.z));drawNumberBadge(anchor,(isCoach?'C':'')+id,32)}
 function drawCone(P,x,z){
  // V104: Canvas fallback is drawn only while no custom cone GLB is available.
  // Avoid overlapping the custom mesh with a second, built-in cone.
