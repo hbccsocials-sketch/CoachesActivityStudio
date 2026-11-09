@@ -1781,7 +1781,7 @@ $('canvas').addEventListener('dblclick',e=>{if(tool==='move'&&drawing){e.prevent
   return;
  }
  const p=current.items.find(x=>x.id===drag.id);
- if(p){p.x=pos[0];p.y=pos[1];renderCanvas()}
+ if(p){p.x=pos[0];p.y=pos[1];reconnectMovementChain(p.id);renderCanvas()}
 });function finishCanvasDrag(e){
  if(!drag)return;
  const wasPath=Number.isInteger(drag.pathIndex);
