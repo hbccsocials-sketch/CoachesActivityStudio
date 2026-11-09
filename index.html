@@ -2474,14 +2474,14 @@ function shiftRequestPublish(){
 }
 async function shiftSendSubmission(e){
  e.preventDefault();const button=$('shiftSubmitButton');if(button.disabled)return;
- const activity=shiftDraftSnapshot();const name=$('shiftSubmitName').value.trim(),email=$('shiftSubmitEmail').value.trim();
- if(!activity?.name?.trim()||!name||!email)return;
+ const activity=shiftDraftSnapshot();
+ if(!activity?.name?.trim())return;
  button.disabled=true;button.textContent='Submitting…';$('shiftSubmitStatus').textContent='';
  try{
-  const response=await fetch(CLOUD_URL+'/functions/v1/submit-drill',{method:'POST',headers:{'Content-Type':'application/json','apikey':CLOUD_PUBLIC_KEY},body:JSON.stringify({name,email,website:$('shiftSubmitWebsite').value,activity})});
-  const result=await response.json().catch(()=>({}));if(!response.ok)throw Error(result.error||'Submission failed');
+  const response=await fetch(CLOUD_URL+'/functions/v1/submit-drill',{method:'POST',headers:{'Content-Type':'application/json','apikey':CLOUD_PUBLIC_KEY},body:JSON.stringify({website:$('shiftSubmitWebsite').value,activity})});
+  const result=await response.json().catch(()=>({}));if(!response.ok)throw Error(result.error||('Submission failed (HTTP '+response.status+')'));
   $('shiftSubmitDialog').close();showShiftSaveToast('Submitted for admin review');shiftPublicNav();
- }catch(err){$('shiftSubmitStatus').textContent='Could not submit: '+err.message+' Your browser draft is still saved.'}
+ }catch(err){const detail=err instanceof TypeError?'Could not reach the submission service. Check that the submit-drill Edge Function is deployed, Verify JWT is off, and SHIFT_PUBLIC_ORIGIN matches this site.':err.message;$('shiftSubmitStatus').textContent=detail+' Your browser draft is still saved.'}
  finally{button.disabled=false;button.textContent='Submit for approval'}
 }
 async function shiftLoadSubmissions(){
@@ -2489,7 +2489,7 @@ async function shiftLoadSubmissions(){
  const el=$('shiftSubmissionList');if(!el)return;el.textContent='Loading…';
  const {data,error}=await cloudClient.from('drill_submissions').select('id,created_at,submitter_name,submitter_email,title,status,activity_data').in('status',['pending','declined']).order('created_at',{ascending:false}).limit(100);
  if(error){el.textContent='Could not load submissions: '+error.message;return}
- el.innerHTML=data.length?data.map(r=>`<article class="shift-submission-card"><div class="row between"><strong>${esc(r.title)}</strong><span class="pill">${esc(r.status)}</span></div><p class="shift-review-meta">${esc(r.submitter_name)} · ${esc(r.submitter_email)} · ${esc(new Date(r.created_at).toLocaleDateString())}</p><p>${(r.activity_data?.items||[]).length} items · ${(r.activity_data?.paths||[]).length} movements</p><div class="row"><button onclick="shiftReviewSubmission('${r.id}')">Review in builder</button>${r.status==='pending'?`<button class="primary" onclick="shiftApproveSubmission('${r.id}')">Approve &amp; publish</button><button onclick="shiftDeclineSubmission('${r.id}')">Decline</button>`:`<button onclick="shiftRestoreSubmission('${r.id}')">Restore to pending</button>`}</div></article>`).join(''):'<p class="muted">No pending or recently declined submissions.</p>';
+ el.innerHTML=data.length?data.map(r=>`<article class="shift-submission-card"><div class="row between"><strong>${esc(r.title)}</strong><span class="pill">${esc(r.status)}</span></div><p class="shift-review-meta">Anonymous submission · ${esc(new Date(r.created_at).toLocaleDateString())}</p><p>${(r.activity_data?.items||[]).length} items · ${(r.activity_data?.paths||[]).length} movements</p><div class="row"><button onclick="shiftReviewSubmission('${r.id}')">Review in builder</button>${r.status==='pending'?`<button class="primary" onclick="shiftApproveSubmission('${r.id}')">Approve &amp; publish</button><button onclick="shiftDeclineSubmission('${r.id}')">Decline</button>`:`<button onclick="shiftRestoreSubmission('${r.id}')">Restore to pending</button>`}</div></article>`).join(''):'<p class="muted">No pending or recently declined submissions.</p>';
  window.shiftSubmissionCache=data;
 }
 function shiftReviewSubmission(id){const r=window.shiftSubmissionCache?.find(x=>x.id===id);if(!r)return;const a=clone(r.activity_data);a.id=crypto.randomUUID();a.parentId=null;a.version='1';a.name=r.title;current=a;openEditor();$('editorTitle').textContent='Review submission · '+r.title;alert('Review-only copy. To publish this submitted drill, return to Drill Studio and choose Approve & publish. Saving here would create a separate admin draft.');}
@@ -2511,7 +2511,7 @@ async function shiftApproveSubmission(id){
 async function shiftDeclineSubmission(id){if(!adminAuthorized)return;if(!confirm('Decline this submission? It will be removed after 30 days.'))return;const {error}=await cloudClient.from('drill_submissions').update({status:'declined',reviewed_at:new Date().toISOString(),reviewed_by:cloudUser.id}).eq('id',id);if(error)alert(error.message);else shiftLoadSubmissions()}
 async function shiftRestoreSubmission(id){if(!adminAuthorized)return;const {error}=await cloudClient.from('drill_submissions').update({status:'pending',reviewed_at:null,reviewed_by:null}).eq('id',id);if(error)alert(error.message);else shiftLoadSubmissions()}
 (function(){
- const dialog=document.createElement('dialog');dialog.id='shiftSubmitDialog';dialog.className='help-dialog';dialog.innerHTML='<form onsubmit="shiftSendSubmission(event)" class="shift-submit-form"><h2>Request to publish</h2><p class="muted">Your drill will be sent to the SHIFT admin for review. No login required.</p><label>Your name<input id="shiftSubmitName" required maxlength="100" autocomplete="name"></label><label>Email address<input id="shiftSubmitEmail" type="email" required maxlength="200" autocomplete="email"></label><input id="shiftSubmitWebsite" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px"><p id="shiftSubmitStatus" role="alert" style="color:#a22"></p><div class="row"><button type="button" onclick="this.closest(&quot;dialog&quot;).close()">Cancel</button><button type="submit" class="primary" id="shiftSubmitButton">Submit for approval</button></div></form>';document.body.append(dialog);
+ const dialog=document.createElement('dialog');dialog.id='shiftSubmitDialog';dialog.className='help-dialog';dialog.innerHTML='<form onsubmit="shiftSendSubmission(event)" class="shift-submit-form"><h2>Request to publish</h2><p class="muted">Submit this drill anonymously to the SHIFT admin for review. No login or personal details required.</p><p class="muted" style="font-size:12px">You won’t receive a status update, but your draft remains saved in this browser.</p><input id="shiftSubmitWebsite" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px"><p id="shiftSubmitStatus" role="alert" style="color:#a22"></p><div class="row"><button type="button" onclick="this.closest(&quot;dialog&quot;).close()">Cancel</button><button type="submit" class="primary" id="shiftSubmitButton">Submit for approval</button></div></form>';document.body.append(dialog);
  if(!ADMIN_ROUTE&&location.pathname==='/studio')shiftOpenPublicStudio();
  const oldNavigate=window.adminNavigate;if(typeof oldNavigate==='function')window.adminNavigate=function(page){const result=oldNavigate.apply(this,arguments);if(page==='activities')shiftLoadSubmissions();return result};
 })();
