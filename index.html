@@ -1227,6 +1227,9 @@ function showShiftSaveToast(message){
 async function publishActivity(id){
  if(!adminAuthorized)return;
  const a=activities.find(x=>x.id===id);if(!a)return;
+ // Every published variation retains its own ID and JSON; the RLS policy
+ // validates ownership via the saved activity_versions row and its parent.
+ if(a.parentId&&!activities.some(x=>x.id===a.parentId)){alert('Cannot publish this variation: its parent activity is missing.');return false;}
 
  const {error}=await cloudClient.from('published_activities').upsert({source_activity_id:a.id,title:a.name||'Untitled activity',activity_data:a,owner_id:cloudUser.id,published_at:new Date().toISOString()},{onConflict:'source_activity_id'});
  if(error){const isRls=/row.level security|permission denied/i.test(error.message||'');alert(isRls?'Publishing blocked by Supabase permissions for published_activities. Your variation has not been published. Ask the database administrator to check the authenticated INSERT/UPDATE RLS policies and owner_id.\n\nDetails: '+error.message:'Publish failed: '+error.message);return false}await refreshAdminPublishing();renderAdminActivities();showShiftSaveToast('Published successfully');return true;
