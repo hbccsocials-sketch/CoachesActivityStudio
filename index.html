@@ -1231,12 +1231,15 @@ async function publishActivity(id){
  // validates ownership via the saved activity_versions row and its parent.
  if(a.parentId&&!activities.some(x=>x.id===a.parentId)){alert('Cannot publish this variation: its parent activity is missing.');return false;}
 
- const {error}=await cloudClient.from('published_activities').upsert({source_activity_id:a.id,title:a.name||'Untitled activity',activity_data:a,owner_id:cloudUser.id,published_at:new Date().toISOString()},{onConflict:'source_activity_id'});
+ const rootId=a.parentId||a.id;
+ const {data:versionRow,error:versionError}=await cloudClient.from('activity_versions').select('id').eq('activity_id',rootId).eq('version_label',String(a.version||'1')).single();
+ if(versionError||!versionRow){alert('Save this variation before publishing. '+(versionError?.message||''));return false}
+ const {error}=await cloudClient.from('published_activities').upsert({source_activity_id:rootId,source_version_id:versionRow.id,title:a.name||'Untitled activity',activity_data:a,owner_id:cloudUser.id,published_at:new Date().toISOString()},{onConflict:'source_version_id'});
  if(error){const isRls=/row.level security|permission denied/i.test(error.message||'');alert(isRls?'Publishing blocked by Supabase permissions for published_activities. Your variation has not been published. Ask the database administrator to check the authenticated INSERT/UPDATE RLS policies and owner_id.\n\nDetails: '+error.message:'Publish failed: '+error.message);return false}await refreshAdminPublishing();renderAdminActivities();showShiftSaveToast('Published successfully');return true;
 }
 async function unpublishActivity(id){
  if(!adminAuthorized||!confirm('Remove this activity from the public library?'))return;
- const {error}=await cloudClient.from('published_activities').delete().eq('source_activity_id',id);
+ const {error}=await cloudClient.from('published_activities').delete().eq('activity_data->>id',id);
  if(error)alert('Unpublish failed: '+error.message);else {await refreshAdminPublishing();renderAdminActivities();alert('Removed from public library.');}
 }
 let v112LibraryScrollY=0;
@@ -1446,7 +1449,7 @@ async function saveStudioIcon(key){const status=$('iconManagerStatus');try{const
 async function addStudioIcon(){const status=$('iconManagerStatus');try{const name=$('newIconName').value.trim();if(!name)throw Error('Enter an icon name.');const file=$('newIconFile').files[0];if(!file)throw Error('Upload an icon image.');const key='custom_'+crypto.randomUUID().replaceAll('-','');fixedTypes.add(key);await upsertStudioIcon({icon_key:key,label:name,image_data:await compactImage(file,128,128,90000),enabled:true});$('newIconName').value='';$('newIconFile').value='';status.textContent='Fixed equipment icon added.'}catch(e){status.textContent=e.message}}
 async function removeStudioIcon(key){if(!adminAuthorized||!key.startsWith('custom_')||!confirm('Remove this icon from the toolbar? Existing activities may still contain it.'))return;const {error}=await cloudClient.from('studio_icons').delete().eq('icon_key',key);if(error){$('iconManagerStatus').textContent=error.message;return}await loadStudioIcons();renderIconManager()}
 function renderTilePicker(){const el=$('tileActivityPicker');if(!el)return;el.innerHTML='<option value="">Choose activity</option>'+activities.map(a=>`<option value="${esc(a.id)}">${esc(a.name||'Untitled activity')}</option>`).join('')}
-async function savePublicTileImage(){const status=$('tileImageStatus');try{if(!adminAuthorized)throw Error('Admin login required.');const id=$('tileActivityPicker').value,a=activities.find(x=>x.id===id);if(!a)throw Error('Select an activity.');const file=$('tileImageFile').files[0];if(!file)throw Error('Choose an image.');const image=await compactImage(file,1200,600,300000);a.tileImage=image;await saveCloudActivity(a);const {error}=await cloudClient.from('published_activities').upsert({source_activity_id:a.id,title:a.name||'Untitled activity',activity_data:a,owner_id:cloudUser.id,published_at:new Date().toISOString()},{onConflict:'source_activity_id'});if(error)throw error;$('tileImagePreview').innerHTML=`<img src="${image}" style="width:100%;aspect-ratio:2/1;object-fit:contain;border-radius:8px" alt="New tile preview">`;status.textContent='Tile image saved and published. Refresh the public website to see it.'}catch(e){status.textContent=e.message}}
+async function savePublicTileImage(){const status=$('tileImageStatus');try{if(!adminAuthorized)throw Error('Admin login required.');const id=$('tileActivityPicker').value,a=activities.find(x=>x.id===id);if(!a)throw Error('Select an activity.');const file=$('tileImageFile').files[0];if(!file)throw Error('Choose an image.');const image=await compactImage(file,1200,600,300000);a.tileImage=image;await saveCloudActivity(a);const rootId=a.parentId||a.id;const {data:vr,error:ve}=await cloudClient.from('activity_versions').select('id').eq('activity_id',rootId).eq('version_label',String(a.version||'1')).single();if(ve||!vr)throw ve||new Error('Save the variation first');const {error}=await cloudClient.from('published_activities').upsert({source_activity_id:rootId,source_version_id:vr.id,title:a.name||'Untitled activity',activity_data:a,owner_id:cloudUser.id,published_at:new Date().toISOString()},{onConflict:'source_version_id'});if(error)throw error;$('tileImagePreview').innerHTML=`<img src="${image}" style="width:100%;aspect-ratio:2/1;object-fit:contain;border-radius:8px" alt="New tile preview">`;status.textContent='Tile image saved and published. Refresh the public website to see it.'}catch(e){status.textContent=e.message}}
 const defs=[['stumps','🏏 Wickets'],['singleStump','│ Single stump'],['cone','🔶 Cone'],['catchingRamp','🟠 Catching ramp'],['player','🟡 Player'],['ball','🔴 Ball'],['coachBat','🏏 Coach + bat'],['coachBall','🔵 Coach + ball'],['coach','🔵 Coach']];
 const fixedTypes=new Set(['stumps','singleStump','cone','catchingRamp']);
 const movingTypes=new Set(['player','ball','coachBat','coachBall','coach']);
@@ -1495,9 +1498,9 @@ function openActivity(id){const item=activities.find(a=>a.id===id);if(!item)retu
 let adminPublishedIds=new Set();let adminExpandedGroups={};
 async function refreshAdminPublishing(){
  if(!cloudClient||!adminAuthorized)return;
- const {data,error}=await cloudClient.from('published_activities').select('source_activity_id');
+ const {data,error}=await cloudClient.from('published_activities').select('activity_data');
  if(error){console.warn('Publishing status unavailable',error.message);return}
- adminPublishedIds=new Set((data||[]).map(r=>r.source_activity_id));
+ adminPublishedIds=new Set((data||[]).map(r=>r.activity_data?.id).filter(Boolean));
 }
 function openActivityDetails(id){openActivity(id);setEditorStep(2)}
 function addVersionFrom(id){addVariation(id)}
