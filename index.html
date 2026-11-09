@@ -1277,6 +1277,10 @@ body.admin-route .builder-step .shift-field-zoom{display:none;align-self:flex-en
 }
 
 /* Public Studio — reuses the existing editor without exposing admin save or publishing. */
+/* Public mode normally hides the admin editor. Explicitly reveal it only while a visitor builds a public drill. */
+body.public-mode.public-studio #editor:not(.hidden){display:block!important}
+body.public-mode.public-studio #editor.hidden{display:none!important}
+
 body.public-studio #library,body.public-studio #v69PublicSidebar,body.public-studio #shiftPublicStudioHome{display:none!important}
 #shiftPublicStudioHome{max-width:1200px;margin:0 auto;padding:25px 18px 60px}
 .shift-studio-head{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:20px}
